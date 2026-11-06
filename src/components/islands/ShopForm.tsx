@@ -249,7 +249,7 @@ export default function ShopForm({ initial, maxPhotos, submitLabel, onSubmit, li
       </Section>
 
       {err && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800" role="alert">{err}</p>}
-      <div className="sticky bottom-0 z-10 -mx-4 border-t border-line bg-cream/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+      <div className="sticky bottom-0 z-10 -mx-3 border-t border-line bg-cream/95 px-3 py-3 backdrop-blur min-[380px]:-mx-4 min-[380px]:px-4 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
         <button className="btn-primary w-full !py-3 text-base sm:w-auto sm:px-8" disabled={busy}>
           {busy ? "Saving…" : submitLabel}
         </button>

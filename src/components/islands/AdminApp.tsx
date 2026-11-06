@@ -69,7 +69,7 @@ export default function AdminApp() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-      <nav className="flex gap-1 overflow-x-auto lg:flex-col" aria-label="Admin sections">
+      <nav className="flex flex-wrap gap-1 lg:flex-col lg:flex-nowrap" aria-label="Admin sections">
         {nav.map(([t, l, n]) => (
           <button key={t} onClick={() => go(t)} className={`flex shrink-0 items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium ${tab === t ? "bg-brand-700 text-white" : "hover:bg-sand"}`}>
             {l}
@@ -570,7 +570,7 @@ function PaymentsPanel() {
                 <td className="p-2.5"><a className="underline" href={`/shops/${p.shop_slug}`} target="_blank">{p.shop_name}</a><span className="block text-xs text-muted">{p.email}</span></td>
                 <td className="p-2.5">{p.plan_code}</td>
                 <td className="p-2.5">{paise(p.amount_paise)}</td>
-                <td className="p-2.5"><StatusBadge status={p.status === "paid" ? "approved" : p.status === "failed" ? "rejected" : "pending"} /> <span className="text-xs">{p.status}</span></td>
+                <td className="p-2.5"><span className={`badge ${p.status === "paid" ? "bg-leaf-50 text-leaf" : p.status === "failed" ? "bg-brand-50 text-brand-800" : "bg-zari-100 text-zari-700"}`}>{p.status === "created" ? "not paid" : p.status}</span></td>
                 <td className="p-2.5 font-mono text-xs">{p.provider === "manual" ? `manual · ${p.note ?? ""}` : p.razorpay_payment_id ?? p.razorpay_order_id}{p.error_reason && <span className="block text-brand-700">{p.error_reason}</span>}</td>
               </tr>
             ))}

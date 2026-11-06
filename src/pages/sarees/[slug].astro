@@ -84,7 +84,7 @@ const jsonLd = p
       <a href="/sarees" class="hover:underline">Sarees</a> › <a href={`/shops/${s.slug}`} class="hover:underline">{s.name}</a> › <span class="text-ink">{truncate(p.title, 50)}</span>
     </nav>
   </div>
-  <section class="container-x mt-4 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-shop-actions data-shop-id={s.id}>
+  <section class="container-x mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-shop-actions data-shop-id={s.id}>
     <div>
       <div class="relative overflow-hidden rounded-2xl bg-sand">
         <img id="main-img" src={mediaUrl(p.images[0])} alt={p.title} class="aspect-[3/4] w-full object-cover" fetchpriority="high" />

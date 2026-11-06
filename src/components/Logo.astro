@@ -2,8 +2,8 @@
 export interface Props { class?: string; withText?: boolean; dark?: boolean }
 const { class: cls = "", withText = true, dark = false } = Astro.props;
 ---
-<span class:list={["inline-flex items-center gap-2", cls]}>
-  <svg viewBox="0 0 40 40" class="h-9 w-9 shrink-0" aria-hidden="true">
+<span class:list={["inline-flex items-center gap-1.5 min-[380px]:gap-2", cls]}>
+  <svg viewBox="0 0 40 40" class="h-8 w-8 shrink-0 min-[380px]:h-9 min-[380px]:w-9" aria-hidden="true">
     <rect width="40" height="40" rx="11" fill="#2f4938" />
     <path d="M11 30c2-9 6-16 13-20 1.8 4.5 3.2 11.5 2.6 20H11z" fill="#f9f5ee" />
     <path d="M24 10c3.4 2.6 5.6 9.6 5.6 20h-3c.6-8.5-.8-15.5-2.6-20z" fill="#b0792a" />
@@ -12,8 +12,8 @@ const { class: cls = "", withText = true, dark = false } = Astro.props;
   </svg>
   {withText && (
     <span class="leading-none">
-      <span class:list={["block font-display text-[1.25rem] font-semibold", dark ? "text-cream" : "text-brand-800"]}>Sarees Hub</span>
-      <span class:list={["block text-[10px] font-semibold uppercase tracking-[0.18em]", dark ? "text-zari-300" : "text-zari-700"]}>shops · weavers · sarees</span>
+      <span class:list={["block whitespace-nowrap font-display text-[1.1rem] font-semibold min-[380px]:text-[1.25rem]", dark ? "text-cream" : "text-brand-800"]}>Sarees Hub</span>
+      <span class:list={["hidden whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.18em] min-[380px]:block", dark ? "text-zari-300" : "text-zari-700"]}>shops · weavers · sarees</span>
     </span>
   )}
 </span>

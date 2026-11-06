@@ -48,7 +48,7 @@ const year = new Date().getFullYear();
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
     <div class="border-pattern h-1.5 w-full" aria-hidden="true"></div>
     <header class="sticky top-0 z-50 border-b border-zari-500/40 bg-ink text-cream shadow-lg">
-      <div class:list={["flex h-16 items-center gap-3", app ? "px-3 sm:px-5" : "container-x"]}>
+      <div class:list={["flex h-16 items-center gap-2 sm:gap-3", app ? "px-3 sm:px-5" : "container-x"]}>
         <a href="/" aria-label="Sarees Hub home" class="shrink-0"><Logo dark /></a>
         <nav class="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
           {nav.map((n) => (
@@ -68,7 +68,7 @@ const year = new Date().getFullYear();
           <label class="sr-only" for="hdr-q">Search sarees</label>
           <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !border-white/15 !bg-white/10 !py-2 !text-cream placeholder:!text-cream/50 focus:!border-zari-300 focus:!ring-zari-500/30" />
         </form>
-        <div class="ml-auto flex items-center gap-2 lg:ml-2">
+        <div class="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-2">
           <AccountMenu client:idle />
           <details class="relative md:hidden">
             <summary class="btn !p-2 list-none cursor-pointer text-cream hover:bg-white/10" aria-label="Menu">
