@@ -178,11 +178,11 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["has", "point_count"],
           paint: {
-            "circle-color": "#2f8045",
+            "circle-color": "#2f4938",
             "circle-opacity": 0.9,
             "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 32],
             "circle-stroke-width": 3,
-            "circle-stroke-color": "#f0cf74",
+            "circle-stroke-color": "#e6b374",
           },
         });
         map.addLayer({
@@ -191,7 +191,7 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["has", "point_count"],
           layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 13, "text-font": ["Noto Sans Bold"] },
-          paint: { "text-color": "#f7fbf5" },
+          paint: { "text-color": "#f9f5ee" },
         });
         map.addLayer({
           id: "shop-points",
@@ -199,7 +199,7 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["!", ["has", "point_count"]],
           paint: {
-            "circle-color": ["case", ["==", ["get", "featured"], 1], "#d4a62a", "#2f8045"],
+            "circle-color": ["case", ["==", ["get", "featured"], 1], "#b0792a", "#2f4938"],
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 6, 14, 10],
             "circle-stroke-width": 2.5,
             "circle-stroke-color": "#ffffff",
@@ -210,7 +210,7 @@ export default function MapExplorer() {
           type: "circle",
           source: "shops",
           filter: ["==", ["get", "id"], ""],
-          paint: { "circle-color": "rgba(0,0,0,0)", "circle-radius": 18, "circle-stroke-width": 3, "circle-stroke-color": "#d4a62a" },
+          paint: { "circle-color": "rgba(0,0,0,0)", "circle-radius": 18, "circle-stroke-width": 3, "circle-stroke-color": "#b0792a" },
         });
         map.addLayer({
           id: "shop-labels",
@@ -219,7 +219,7 @@ export default function MapExplorer() {
           minzoom: 12.5,
           filter: ["!", ["has", "point_count"]],
           layout: { "text-field": ["get", "name"], "text-size": 12, "text-offset": [0, 1.3], "text-anchor": "top", "text-font": ["Noto Sans Bold"], "text-optional": true },
-          paint: { "text-color": "#1a4d29", "text-halo-color": "#fff", "text-halo-width": 1.5 },
+          paint: { "text-color": "#17261c", "text-halo-color": "#fff", "text-halo-width": 1.5 },
         });
 
         map.on("click", "clusters", async (e) => {
@@ -483,11 +483,11 @@ function popupHtml(s: ShopCard) {
   return `
     ${img ? `<img src="${img}" alt="" style="width:100%;height:110px;object-fit:cover;border-radius:14px 14px 0 0" />` : ""}
     <div style="padding:10px 12px 12px">
-      <div style="font-size:11px;font-weight:600;color:#8a6410;text-transform:uppercase;letter-spacing:.04em">${esc(kindLabel(s.kind))}</div>
-      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;font-family:Georgia,serif;font-size:17px;line-height:1.2;color:#1c2a20;margin-top:2px">${esc(s.name)}</a>
-      <div style="font-size:12px;color:#5d6e62;margin-top:2px">${esc(placeLine(s))}${s.distance_km != null ? ` · ${formatKm(s.distance_km)}` : ""}</div>
+      <div style="font-size:11px;font-weight:600;color:#78521c;text-transform:uppercase;letter-spacing:.04em">${esc(kindLabel(s.kind))}</div>
+      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;font-family:Georgia,serif;font-size:17px;line-height:1.2;color:#18130e;margin-top:2px">${esc(s.name)}</a>
+      <div style="font-size:12px;color:#655c52;margin-top:2px">${esc(placeLine(s))}${s.distance_km != null ? ` · ${formatKm(s.distance_km)}` : ""}</div>
       <div style="font-size:12px;margin-top:4px">${s.rating_count ? `★ ${Number(s.rating_avg).toFixed(1)} (${s.rating_count})` : "New listing"}</div>
-      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;margin-top:8px;text-align:center;background:#2f8045;color:#fff;border-radius:10px;padding:7px;font-size:13px;font-weight:600">View shop & sarees</a>
+      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;margin-top:8px;text-align:center;background:#2f4938;color:#fff;border-radius:10px;padding:7px;font-size:13px;font-weight:600">View shop & sarees</a>
     </div>`;
 }
 

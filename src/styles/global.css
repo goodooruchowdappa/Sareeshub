@@ -1,36 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  /* Light-green palette: leaf green brand, temple-gold zari accent, mint-tinted background */
-  --color-brand-50: #f0f9f1;
-  --color-brand-100: #dcf1df;
-  --color-brand-200: #b9e2c0;
-  --color-brand-500: #4cae63;
-  --color-brand-600: #3a9a52;
-  --color-brand-700: #2f8045;
-  --color-brand-800: #2f8045;
-  --color-brand-900: #1a4d29;
-  --color-zari-100: #fcf2d8;
-  --color-zari-300: #f0cf74;
-  --color-zari-500: #d4a62a;
-  --color-zari-600: #b7871a;
-  --color-zari-700: #8a6410;
-  --color-peacock-50: #e4f3f2;
-  --color-peacock-500: #0f7c78;
-  --color-peacock-700: #0b5654;
-  --color-cream: #f7fbf5;
-  --color-sand: #eaf4e6;
-  --color-line: #d6e7d1;
-  --color-ink: #1c2a20;
-  --color-muted: #5d6e62;
-  --color-leaf: #0f6e64;
-  --color-leaf-50: #e4f3f0;
+  /* Colours from the original Sarees Hub (Lovable) "Woven counter" design: paper, ink, zari gold, forest green */
+  --color-brand-50: #eff8f2;
+  --color-brand-100: #ddede2;
+  --color-brand-200: #c0d8c7;
+  --color-brand-500: #557c62;
+  --color-brand-600: #40614b;
+  --color-brand-700: #2f4938;
+  --color-brand-800: #24382b;
+  --color-brand-900: #17261c;
+  --color-zari-100: #f7ecd6;
+  --color-zari-300: #e6b374;
+  --color-zari-500: #b0792a;
+  --color-zari-600: #956725;
+  --color-zari-700: #78521c;
+  --color-peacock-50: #eff8f2;
+  --color-peacock-500: #557c62;
+  --color-peacock-700: #2f4938;
+  --color-cream: #f9f5ee;
+  --color-sand: #f0ebdf;
+  --color-line: #e3dccd;
+  --color-ink: #18130e;
+  --color-muted: #655c52;
+  --color-leaf: #40614b;
+  --color-leaf-50: #eff8f2;
 
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
     sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(19 59 32 / 0.06), 0 10px 28px -14px rgb(19 59 32 / 0.22);
+  --shadow-card: 0 1px 2px rgb(24 19 14 / 0.06), 0 10px 28px -14px rgb(24 19 14 / 0.22);
 }
 
 @layer base {

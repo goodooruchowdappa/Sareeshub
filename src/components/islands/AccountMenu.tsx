@@ -12,7 +12,7 @@ export default function AccountMenu() {
     return () => document.removeEventListener("click", close);
   }, []);
 
-  if (!ready) return <div className="h-9 w-9 animate-pulse rounded-full bg-sand" aria-hidden />;
+  if (!ready) return <div className="h-9 w-9 animate-pulse rounded-full bg-white/10" aria-hidden />;
 
   if (!me)
     return (
@@ -27,7 +27,7 @@ export default function AccountMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-full border border-line bg-white p-0.5 pr-2 hover:border-brand-200"
+        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 p-0.5 pr-2 text-cream hover:bg-white/15"
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -43,7 +43,7 @@ export default function AccountMenu() {
         </span>
       </button>
       {open && (
-        <div role="menu" className="card absolute right-0 z-[60] mt-2 w-60 overflow-hidden p-1 text-sm">
+        <div role="menu" className="card absolute right-0 z-[60] mt-2 w-60 overflow-hidden p-1 text-sm text-ink">
           <div className="border-b border-line px-3 py-2">
             <p className="truncate font-semibold">{me.full_name ?? "Signed in"}</p>
             <p className="truncate text-xs text-muted">{me.email}</p>
