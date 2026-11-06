@@ -45,7 +45,7 @@ const kindIcons: Record<string, string> = {
 <Layout title={`${SITE.name} — ${SITE.tagline}`} description={SITE.description} path="/" jsonLd={jsonLd}>
   {!data ? <ServiceDown /> : (
     <>
-      <section class="relative overflow-hidden border-b border-line bg-gradient-to-b from-sand to-cream">
+      <section class="relative overflow-hidden border-b border-line bg-[radial-gradient(ellipse_at_top_right,var(--color-zari-100),transparent_55%),radial-gradient(ellipse_at_bottom_left,var(--color-maroon-50),transparent_60%),linear-gradient(to_bottom,var(--color-sand),var(--color-cream))]">
         <div class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-zari-300/30 blur-3xl" aria-hidden="true"></div>
         <div class="pointer-events-none absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-maroon-200/40 blur-3xl" aria-hidden="true"></div>
         <div class="container-x relative grid gap-10 py-12 sm:py-16 lg:grid-cols-[1.2fr_1fr] lg:items-center">
@@ -79,11 +79,11 @@ const kindIcons: Record<string, string> = {
               { n: data.stats.cities, l: "towns & cities" },
             ].map((s) => (
               <div class="card p-5">
-                <p class="font-display text-4xl text-maroon-700">{s.n.toLocaleString("en-IN")}</p>
+                <p class="font-display text-4xl text-maroon-700">{s.n.toLocaleString("en-IN")}</p><div class="mt-2 h-0.5 w-10 rounded-full bg-gradient-to-r from-zari-500 to-peacock-500"></div>
                 <p class="mt-1 text-sm text-muted">{s.l}</p>
               </div>
             ))}
-            <div class="col-span-2 rounded-2xl bg-maroon-800 p-5 text-cream">
+            <div class="col-span-2 rounded-2xl bg-gradient-to-br from-maroon-700 via-maroon-800 to-maroon-900 p-5 text-cream shadow-lg shadow-maroon-900/20 ring-1 ring-zari-500/30">
               <p class="font-display text-xl">Own a saree shop or loom?</p>
               <p class="mt-1 text-sm text-cream/80">Put your shop on the map for free and get calls from nearby buyers.</p>
               <a href="/seller/register" class="btn mt-3 bg-cream text-maroon-800 hover:bg-white">Register your shop →</a>

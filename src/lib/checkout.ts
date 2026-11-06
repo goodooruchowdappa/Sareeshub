@@ -52,7 +52,7 @@ export async function buyPlan(shopId: string, planCode: string, prefill: { name?
       image: `${location.origin}/icons/icon-192.png`,
       prefill,
       notes: { shop_id: shopId, plan_code: planCode },
-      theme: { color: "#7a1f2b" },
+      theme: { color: "#861a3a" },
       retry: { enabled: true },
       handler: async (resp: RazorpayResponse) => {
         try {

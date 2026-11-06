@@ -145,8 +145,8 @@ export default function LocationPicker({ value, onChange, onAddress }: Props) {
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-full">
           <div className={`transition-transform ${moving ? "-translate-y-2" : ""}`}>
             <svg width="40" height="52" viewBox="0 0 30 40" aria-hidden="true">
-              <path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.4 15 39 15 39s14-13.6 14-24.1C29 7.2 22.7 1 15 1z" fill="#7a1f2b" stroke="#fff" strokeWidth="2" />
-              <circle cx="15" cy="15" r="5.5" fill="#c8962e" />
+              <path d="M15 1C7.3 1 1 7.2 1 14.9 1 25.4 15 39 15 39s14-13.6 14-24.1C29 7.2 22.7 1 15 1z" fill="#861a3a" stroke="#fff" strokeWidth="2" />
+              <circle cx="15" cy="15" r="5.5" fill="#d4a62a" />
             </svg>
           </div>
           <div className="mx-auto h-1.5 w-3 rounded-full bg-black/30" />

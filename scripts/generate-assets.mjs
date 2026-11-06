@@ -9,7 +9,7 @@ writeFileSync("public/icons/icon-192.png", await png(192));
 writeFileSync("public/icons/icon-512.png", await png(512));
 writeFileSync("public/icons/apple-touch-icon.png", await png(180));
 const maskable = Buffer.from(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#7a1f2b"/><g transform="translate(6 6) scale(0.7)">${logo
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#861a3a"/><g transform="translate(6 6) scale(0.7)">${logo
     .toString()
     .replace(/^<svg[^>]*>/, "")
     .replace(/<\/svg>\s*$/, "")}</g></svg>`,
@@ -25,19 +25,19 @@ head.writeUInt16LE(1, 10); head.writeUInt16LE(32, 12); head.writeUInt32LE(p32.le
 writeFileSync("public/favicon.ico", Buffer.concat([head, p32]));
 
 const stripes = Array.from({ length: 60 }, (_, i) =>
-  `<rect x="${i * 20}" y="0" width="14" height="18" fill="#7a1f2b"/><rect x="${i * 20 + 14}" y="0" width="4" height="18" fill="#c8962e"/>`,
+  `<rect x="${i * 20}" y="0" width="14" height="18" fill="#861a3a"/><rect x="${i * 20 + 14}" y="0" width="4" height="18" fill="#d4a62a"/>`,
 ).join("");
 const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#fbf6ee"/>
-  <circle cx="1080" cy="80" r="260" fill="#e8c97b" opacity="0.35"/>
-  <circle cx="120" cy="620" r="240" fill="#eabac1" opacity="0.45"/>
+  <rect width="1200" height="630" fill="#fffaf2"/>
+  <circle cx="1080" cy="80" r="260" fill="#f0cf74" opacity="0.35"/>
+  <circle cx="120" cy="620" r="240" fill="#f2b9c7" opacity="0.45"/>
   <g>${stripes}</g><g transform="translate(0 612)">${stripes}</g>
   <g transform="translate(90 150) scale(4.2)">${logo.toString().replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "")}</g>
-  <text x="290" y="235" font-family="Georgia, serif" font-size="92" font-weight="700" fill="#5f1721">Sarees Hub</text>
-  <text x="294" y="290" font-family="Helvetica, Arial, sans-serif" font-size="26" letter-spacing="6" fill="#7f5b15">SHOPS · WEAVERS · SAREES</text>
-  <text x="90" y="420" font-family="Georgia, serif" font-size="54" fill="#231b17">Every saree shop and weaver,</text>
-  <text x="90" y="485" font-family="Georgia, serif" font-size="54" font-style="italic" fill="#8e2a3b">on one map.</text>
-  <text x="90" y="555" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#6f625a">Pure pattu · Kanchipuram · Banarasi · Handloom — call or WhatsApp sellers directly</text>
+  <text x="290" y="235" font-family="Georgia, serif" font-size="92" font-weight="700" fill="#66132c">Sarees Hub</text>
+  <text x="294" y="290" font-family="Helvetica, Arial, sans-serif" font-size="26" letter-spacing="6" fill="#8a6410">SHOPS · WEAVERS · SAREES</text>
+  <text x="90" y="420" font-family="Georgia, serif" font-size="54" fill="#2b1820">Every saree shop and weaver,</text>
+  <text x="90" y="485" font-family="Georgia, serif" font-size="54" font-style="italic" fill="#9e1f43">on one map.</text>
+  <text x="90" y="555" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#74606a">Pure pattu · Kanchipuram · Banarasi · Handloom — call or WhatsApp sellers directly</text>
 </svg>`;
 writeFileSync("public/og-default.png", await sharp(Buffer.from(og)).png({ compressionLevel: 9 }).toBuffer());
 console.log("assets generated");

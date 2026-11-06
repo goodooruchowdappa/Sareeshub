@@ -1,32 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-maroon-50: #fbf1f2;
-  --color-maroon-100: #f5dde0;
-  --color-maroon-200: #eabac1;
-  --color-maroon-500: #a63446;
-  --color-maroon-600: #8e2a3b;
-  --color-maroon-700: #7a1f2b;
-  --color-maroon-800: #5f1721;
-  --color-maroon-900: #401017;
-  --color-zari-100: #f8eccf;
-  --color-zari-300: #e8c97b;
-  --color-zari-500: #c8962e;
-  --color-zari-600: #a87a1f;
-  --color-zari-700: #7f5b15;
-  --color-cream: #fbf6ee;
-  --color-sand: #f3eadb;
-  --color-line: #e6dccb;
-  --color-ink: #231b17;
-  --color-muted: #6f625a;
-  --color-leaf: #2f6b4f;
-  --color-leaf-50: #eaf4ee;
+  /* "Kanjivaram" palette: kumkum red, temple-gold zari, peacock blue-green, ivory silk */
+  --color-maroon-50: #fdf2f4;
+  --color-maroon-100: #fae0e6;
+  --color-maroon-200: #f2b9c7;
+  --color-maroon-500: #b8274e;
+  --color-maroon-600: #9e1f43;
+  --color-maroon-700: #861a3a;
+  --color-maroon-800: #66132c;
+  --color-maroon-900: #43091c;
+  --color-zari-100: #fcf2d8;
+  --color-zari-300: #f0cf74;
+  --color-zari-500: #d4a62a;
+  --color-zari-600: #b7871a;
+  --color-zari-700: #8a6410;
+  --color-peacock-50: #e4f3f2;
+  --color-peacock-500: #0f7c78;
+  --color-peacock-700: #0b5654;
+  --color-cream: #fffaf2;
+  --color-sand: #f7ecdb;
+  --color-line: #ecdcc3;
+  --color-ink: #2b1820;
+  --color-muted: #74606a;
+  --color-leaf: #0f6e64;
+  --color-leaf-50: #e4f3f0;
 
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
     sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(35 27 23 / 0.06), 0 8px 24px -12px rgb(35 27 23 / 0.18);
+  --shadow-card: 0 1px 2px rgb(67 9 28 / 0.06), 0 10px 28px -14px rgb(67 9 28 / 0.22);
 }
 
 @layer base {
@@ -57,10 +61,10 @@
       disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-    @apply btn bg-maroon-700 text-white shadow-sm hover:bg-maroon-800;
+    @apply btn bg-gradient-to-b from-maroon-600 to-maroon-700 text-white shadow-sm shadow-maroon-900/20 hover:from-maroon-700 hover:to-maroon-800;
 }
 @utility btn-gold {
-    @apply btn bg-zari-500 text-ink hover:bg-zari-300;
+    @apply btn bg-gradient-to-b from-zari-300 to-zari-500 text-maroon-900 shadow-sm shadow-zari-700/20 hover:from-zari-500 hover:to-zari-600;
 }
 @utility btn-outline {
     @apply btn border border-line bg-white text-ink hover:border-maroon-200 hover:bg-maroon-50;
