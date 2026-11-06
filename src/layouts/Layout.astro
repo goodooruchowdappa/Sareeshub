@@ -47,16 +47,16 @@ const year = new Date().getFullYear();
   <body class:list={[app ? "flex h-dvh flex-col overflow-hidden" : "min-h-dvh flex flex-col"]}>
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
     <div class="border-pattern h-1.5 w-full" aria-hidden="true"></div>
-    <header class="sticky top-0 z-50 border-b border-line bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
+    <header class="sticky top-0 z-50 border-b border-zari-500/40 bg-ink text-cream shadow-lg">
       <div class:list={["flex h-16 items-center gap-3", app ? "px-3 sm:px-5" : "container-x"]}>
-        <a href="/" aria-label="Sarees Hub home" class="shrink-0"><Logo /></a>
+        <a href="/" aria-label="Sarees Hub home" class="shrink-0"><Logo dark /></a>
         <nav class="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
           {nav.map((n) => (
             <a
               href={n.href}
               class:list={[
-                "rounded-lg px-3 py-2 text-sm font-medium hover:bg-sand",
-                path.startsWith(n.href) && "bg-sand text-brand-800",
+                "rounded-lg px-3 py-2 text-sm font-medium text-cream/85 hover:bg-white/10 hover:text-cream",
+                path.startsWith(n.href) && "bg-white/10 !text-zari-300",
               ]}
               aria-current={path.startsWith(n.href) ? "page" : undefined}
             >
@@ -66,15 +66,15 @@ const year = new Date().getFullYear();
         </nav>
         <form action="/sarees" method="get" role="search" class="ml-auto hidden max-w-xs flex-1 lg:block">
           <label class="sr-only" for="hdr-q">Search sarees</label>
-          <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !py-2" />
+          <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !border-white/15 !bg-white/10 !py-2 !text-cream placeholder:!text-cream/50 focus:!border-zari-300 focus:!ring-zari-500/30" />
         </form>
         <div class="ml-auto flex items-center gap-2 lg:ml-2">
           <AccountMenu client:idle />
           <details class="relative md:hidden">
-            <summary class="btn-ghost !p-2 list-none cursor-pointer" aria-label="Menu">
+            <summary class="btn !p-2 list-none cursor-pointer text-cream hover:bg-white/10" aria-label="Menu">
               <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </summary>
-            <div class="card absolute right-0 z-[60] mt-2 w-56 p-1">
+            <div class="card absolute right-0 z-[60] mt-2 w-56 p-1 text-ink">
               {nav.map((n) => <a href={n.href} class="block rounded-lg px-3 py-2 text-sm hover:bg-sand">{n.label}</a>)}
               <a href="/seller/register" class="block rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-sand">Register your shop</a>
             </div>
