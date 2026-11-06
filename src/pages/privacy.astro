@@ -1,0 +1,28 @@
+---
+export const prerender = true;
+import Prose from "../layouts/Prose.astro";
+import { PUBLIC_BUSINESS_NAME, PUBLIC_CONTACT_EMAIL } from "astro:env/client";
+---
+<Prose title="Privacy Policy" description="How Sarees Hub collects, uses and protects your information." path="/privacy" updated="7 November 2026">
+  <p>This policy explains what {PUBLIC_BUSINESS_NAME} (“Sarees Hub”, “we”) collects when you use this website and how we use it, in line with India's Digital Personal Data Protection Act, 2023.</p>
+  <h2>What we collect</h2>
+  <ul>
+    <li><strong>Google sign-in:</strong> your name, email address and profile photo, to show your name on reviews and let you manage your account.</li>
+    <li><strong>Seller listings:</strong> shop name, phone, WhatsApp, address, map location, photos and catalogue details you submit. These are published on the site once approved, because their purpose is to let buyers contact you.</li>
+    <li><strong>Reviews and saved shops</strong> you create.</li>
+    <li><strong>Payments:</strong> handled by Razorpay. We receive the payment ID, amount and status — never your card or bank details.</li>
+    <li><strong>Usage counts:</strong> anonymous counts of shop views, calls, WhatsApp and direction taps, shown to sellers as lead statistics.</li>
+    <li><strong>Location:</strong> if you tap “Near me”, your browser shares your location with the page to show nearby shops. It is not stored on our servers.</li>
+  </ul>
+  <h2>Services we use</h2>
+  <p>Supabase (database, sign-in and photo storage), Cloudflare (hosting), Google (sign-in), Razorpay (payments), OpenFreeMap and Photon/OpenStreetMap (maps and address search). They process data only to provide these services.</p>
+  <h2>Your choices</h2>
+  <ul>
+    <li>You can edit your name and phone from <a href="/account">your account</a>, and delete your reviews at any time.</li>
+    <li>To delete your account or a shop listing, email <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>. We'll remove it within 30 days, except payment records we must keep by law.</li>
+  </ul>
+  <h2>Cookies</h2>
+  <p>We don't use advertising or tracking cookies. Your sign-in session is stored in your browser's local storage.</p>
+  <h2>Contact</h2>
+  <p>Grievance contact: <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.</p>
+</Prose>

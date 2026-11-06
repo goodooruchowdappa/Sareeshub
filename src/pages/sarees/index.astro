@@ -1,0 +1,201 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProductCardC from "../../components/ProductCard.astro";
+import ServiceDown from "../../components/ServiceDown.astro";
+import { load, num } from "../../lib/server";
+import { PRICE_BANDS, SHOP_KINDS, TAG_CATEGORIES } from "../../lib/config";
+import type { ProductCard, TagRef } from "../../lib/types";
+
+const sp = Astro.url.searchParams;
+const q = (sp.get("q") ?? "").trim().slice(0, 80);
+const tags = sp.getAll("tag").filter(Boolean).slice(0, 6);
+const min = num(sp.get("min"));
+const max = num(sp.get("max"));
+const kind = sp.get("kind") || undefined;
+const sort = ["newest", "price_asc", "price_desc", "nearest", "relevance"].includes(sp.get("sort") ?? "") ? sp.get("sort")! : q ? "relevance" : "newest";
+const lat = num(sp.get("lat"));
+const lng = num(sp.get("lng"));
+const radius = num(sp.get("r")) ?? (lat != null ? 50 : undefined);
+const inStock = sp.get("stock") === "1" ? true : undefined;
+const page = Math.max(1, Math.min(50, num(sp.get("page")) ?? 1));
+const PER = 24;
+
+const [res, tagRes] = await Promise.all([
+  load<{ total: number; items: ProductCard[] }>("search_products", {
+    p_q: q || null,
+    p_tags: tags.length ? tags : null,
+    p_min_price: min ?? null,
+    p_max_price: max ?? null,
+    p_shop_kind: kind ?? null,
+    p_lat: lat ?? null,
+    p_lng: lng ?? null,
+    p_radius_km: lat != null ? radius : null,
+    p_sort: sort === "nearest" && lat == null ? "newest" : sort,
+    p_in_stock: inStock ?? null,
+    p_limit: PER,
+    p_offset: (page - 1) * PER,
+  }),
+  load<TagRef[]>("list_tags"),
+]);
+if (res.error) Astro.response.status = 503;
+const result = res.data;
+const allTags = tagRes.data ?? [];
+const byCat = TAG_CATEGORIES.map((c) => ({
+  ...c,
+  tags: allTags.filter((t) => t.category === c.value && (t.is_default || (t.count ?? 0) > 0 || tags.includes(t.slug))).slice(0, 30),
+})).filter((c) => c.tags.length > 0);
+const tagName = (slug: string) => allTags.find((t) => t.slug === slug)?.name ?? slug;
+
+const withParams = (changes: Record<string, string | string[] | null>) => {
+  const u = new URL(Astro.url);
+  u.searchParams.delete("page");
+  for (const [k, v] of Object.entries(changes)) {
+    u.searchParams.delete(k);
+    if (Array.isArray(v)) v.forEach((x) => u.searchParams.append(k, x));
+    else if (v != null && v !== "") u.searchParams.set(k, v);
+  }
+  return u.pathname + (u.search || "");
+};
+const pageUrl = (p: number) => {
+  const u = new URL(Astro.url);
+  if (p <= 1) u.searchParams.delete("page");
+  else u.searchParams.set("page", String(p));
+  return u.pathname + u.search;
+};
+const pages = result ? Math.ceil(result.total / PER) : 0;
+const heading = q ? `“${q}” sarees` : tags.length ? `${tags.map(tagName).join(" + ")} sarees` : "Sarees from shops & weavers";
+const filtered = !!(q || tags.length || min || max || kind || lat != null || inStock || page > 1);
+---
+
+<Layout
+  title={q || tags.length ? `${heading} — prices & shops near you` : "Buy sarees from local shops & weavers"}
+  description={`Browse ${result?.total ?? ""} sarees${q ? ` matching ${q}` : ""} from saree shops, handloom weavers and wholesalers. Compare prices and contact sellers directly.`}
+  path={tags.length === 1 && !q && !filtered ? `/collections/${tags[0]}` : "/sarees"}
+  noindex={filtered && !(tags.length === 1 && !q)}
+>
+  <div class="container-x pt-6">
+    <h1 class="text-3xl sm:text-4xl">{heading}</h1>
+    {result && <p class="mt-1 text-muted">{result.total.toLocaleString("en-IN")} {result.total === 1 ? "saree" : "sarees"}{lat != null && ` within ${radius} km`}</p>}
+
+    <form method="get" action="/sarees" class="mt-4 flex flex-wrap items-center gap-2" id="saree-search">
+      <input type="search" name="q" value={q} placeholder="Search sarees, fabric, weave, shop…" class="input max-w-md flex-1" />
+      {tags.map((t) => <input type="hidden" name="tag" value={t} />)}
+      {min != null && <input type="hidden" name="min" value={min} />}
+      {max != null && <input type="hidden" name="max" value={max} />}
+      {kind && <input type="hidden" name="kind" value={kind} />}
+      {lat != null && <><input type="hidden" name="lat" value={lat} /><input type="hidden" name="lng" value={lng} /><input type="hidden" name="r" value={radius} /></>}
+      <select name="sort" class="input !w-auto" aria-label="Sort by" onchange="this.form.submit()">
+        {q && <option value="relevance" selected={sort === "relevance"}>Best match</option>}
+        <option value="newest" selected={sort === "newest"}>Newest</option>
+        <option value="price_asc" selected={sort === "price_asc"}>Price: low to high</option>
+        <option value="price_desc" selected={sort === "price_desc"}>Price: high to low</option>
+        <option value="nearest" selected={sort === "nearest"}>Nearest to me</option>
+      </select>
+      <button class="btn-primary">Search</button>
+      <button type="button" class="btn-outline" data-near>{lat != null ? "Change location" : "📍 Near me"}</button>
+    </form>
+
+    {(tags.length > 0 || min != null || max != null || kind || lat != null || inStock) && (
+      <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        {tags.map((t) => <a class="chip chip-active" href={withParams({ tag: tags.filter((x) => x !== t) })}>{tagName(t)} ✕</a>)}
+        {(min != null || max != null) && <a class="chip chip-active" href={withParams({ min: null, max: null })}>₹{min ?? 0} – {max ? `₹${max}` : "any"} ✕</a>}
+        {kind && <a class="chip chip-active" href={withParams({ kind: null })}>{SHOP_KINDS.find((k) => k.value === kind)?.plural ?? kind} ✕</a>}
+        {lat != null && <a class="chip chip-active" href={withParams({ lat: null, lng: null, r: null, sort: sort === "nearest" ? null : sort })}>Within {radius} km ✕</a>}
+        {inStock && <a class="chip chip-active" href={withParams({ stock: null })}>In stock ✕</a>}
+        <a class="text-maroon-700 underline" href="/sarees">Clear all</a>
+      </div>
+    )}
+  </div>
+
+  {!result ? <ServiceDown /> : (
+    <div class="container-x mt-6 grid gap-8 lg:grid-cols-[250px_1fr]">
+      <aside>
+        <details class="card group p-4 lg:open:block" open>
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold lg:hidden">Filters <span class="text-muted group-open:rotate-180">⌄</span></summary>
+          <div class="mt-3 space-y-5 lg:mt-0">
+            <div>
+              <p class="label">Price</p>
+              <ul class="space-y-1 text-sm">
+                {PRICE_BANDS.map((b) => {
+                  const on = (b.min ?? null) === (min ?? null) && (b.max ?? null) === (max ?? null);
+                  return <li><a class:list={["block rounded-lg px-2 py-1 hover:bg-sand", on && "bg-maroon-50 font-semibold text-maroon-800"]} href={withParams({ min: b.min != null ? String(b.min) : null, max: b.max != null ? String(b.max) : null })}>{b.label}</a></li>;
+                })}
+              </ul>
+              <form method="get" action="/sarees" class="mt-2 flex items-center gap-1">
+                {[...sp.entries()].filter(([k]) => !["min", "max", "page"].includes(k)).map(([k, v]) => <input type="hidden" name={k} value={v} />)}
+                <input name="min" inputmode="numeric" pattern="[0-9]*" placeholder="Min ₹" value={min ?? ""} class="input !py-1.5" aria-label="Minimum price" />
+                <input name="max" inputmode="numeric" pattern="[0-9]*" placeholder="Max ₹" value={max ?? ""} class="input !py-1.5" aria-label="Maximum price" />
+                <button class="btn-outline !px-2 !py-1.5" aria-label="Apply price">Go</button>
+              </form>
+            </div>
+            <div>
+              <p class="label">Sold by</p>
+              <div class="flex flex-wrap gap-1">
+                {SHOP_KINDS.map((k) => <a class:list={["chip", kind === k.value && "chip-active"]} href={withParams({ kind: kind === k.value ? null : k.value })}>{k.plural}</a>)}
+              </div>
+            </div>
+            <div>
+              <a class:list={["chip", inStock && "chip-active"]} href={withParams({ stock: inStock ? null : "1" })}>In stock only</a>
+            </div>
+            {byCat.map((c) => (
+              <div>
+                <p class="label">{c.label}</p>
+                <div class="flex flex-wrap gap-1">
+                  {c.tags.map((t) => {
+                    const on = tags.includes(t.slug);
+                    return <a class:list={["chip", on && "chip-active"]} href={withParams({ tag: on ? tags.filter((x) => x !== t.slug) : [...tags, t.slug] })} rel="nofollow">{t.name}</a>;
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      </aside>
+
+      <section aria-label="Results">
+        {result.items.length === 0 ? (
+          <div class="card p-10 text-center">
+            <p class="font-display text-2xl">No sarees match yet</p>
+            <p class="mt-1 text-muted">Try removing a filter, or find shops on the map — many sellers share their latest stock on WhatsApp.</p>
+            <div class="mt-4 flex justify-center gap-2"><a href="/sarees" class="btn-outline">Clear filters</a><a href="/map" class="btn-primary">Open the map</a></div>
+          </div>
+        ) : (
+          <div class="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
+            {result.items.map((p, i) => <ProductCardC product={p} eager={i < 4} />)}
+          </div>
+        )}
+        {pages > 1 && (
+          <nav class="mt-10 flex items-center justify-center gap-2" aria-label="Pages">
+            {page > 1 && <a class="btn-outline" href={pageUrl(page - 1)} rel="prev">← Previous</a>}
+            <span class="text-sm text-muted">Page {page} of {pages}</span>
+            {page < pages && <a class="btn-outline" href={pageUrl(page + 1)} rel="next">Next →</a>}
+          </nav>
+        )}
+      </section>
+    </div>
+  )}
+</Layout>
+
+<script>
+  document.querySelector<HTMLButtonElement>("[data-near]")?.addEventListener("click", (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    if (!navigator.geolocation) return alert("Location is not available on this device.");
+    btn.textContent = "Finding you…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const u = new URL(location.href);
+        u.searchParams.set("lat", pos.coords.latitude.toFixed(4));
+        u.searchParams.set("lng", pos.coords.longitude.toFixed(4));
+        if (!u.searchParams.get("r")) u.searchParams.set("r", "50");
+        u.searchParams.set("sort", "nearest");
+        u.searchParams.delete("page");
+        location.href = u.toString();
+      },
+      () => {
+        btn.textContent = "📍 Near me";
+        alert("Please allow location access, or search by city name instead.");
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    );
+  });
+</script>

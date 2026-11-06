@@ -1,0 +1,79 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { load } from "../lib/server";
+import type { Plan } from "../lib/types";
+const { data: plans } = await load<Plan[]>("list_plans");
+const faq = [
+  ["Is it really free?", "Yes. The Free plan puts your shop on the map with photos, up to 15 sarees, reviews and unlimited calls and WhatsApp enquiries. No commission on sales — ever."],
+  ["How long does approval take?", "Usually within 24 hours. We check that the shop is real and the pin is in the right place. You'll see the status in your dashboard."],
+  ["I'm a weaver working from home. Can I register?", "Yes. Choose “Handloom weaver” and drop the pin on your loom or village. You can hide the exact street and only show the area."],
+  ["Do buyers pay through Sarees Hub?", "No. Buyers call or WhatsApp you directly and you sell the way you already do. Paid plans are only for extra visibility."],
+  ["Can I cancel a paid plan?", "Plans are prepaid and don't renew automatically. When the period ends your shop simply goes back to the Free plan."],
+];
+---
+<Layout
+  title="Sell sarees online — list your saree shop or loom for free"
+  description="Put your saree shop, loom or showroom on the map for free. Get calls and WhatsApp enquiries from nearby buyers. No commission. Paid plans from ₹299/month."
+  path="/sell"
+  jsonLd={[{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }]}
+>
+  <section class="border-b border-line bg-maroon-800 text-cream">
+    <div class="container-x grid gap-8 py-14 lg:grid-cols-2 lg:items-center">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zari-300">For shops, weavers & wholesalers</p>
+        <h1 class="mt-3 text-4xl leading-tight sm:text-5xl">Let buyers near you find your sarees.</h1>
+        <p class="mt-4 max-w-xl text-lg text-cream/80">Register in 5 minutes. Drop your pin, add photos and your best sarees, and start getting calls and WhatsApp messages. Free forever, no commission.</p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <a href="/seller/register" class="btn-gold !px-6 !py-3 text-base">Register your shop — free</a>
+          <a href="#plans" class="btn border border-cream/30 text-cream hover:bg-white/10">See plans</a>
+        </div>
+      </div>
+      <ul class="grid gap-3 sm:grid-cols-2">
+        {[
+          ["📍", "On the map", "Buyers searching nearby see your pin, photos and timings."],
+          ["📞", "Direct leads", "Calls, WhatsApp and directions go straight to you."],
+          ["🏷️", "Your catalogue", "Add sarees with price, fabric, weave and occasion tags."],
+          ["⭐", "Reviews", "Happy customers build trust. Reply to every review."],
+        ].map(([i, t, d]) => (
+          <li class="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"><span class="text-2xl">{i}</span><p class="mt-1 font-semibold">{t}</p><p class="text-sm text-cream/70">{d}</p></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="container-x py-14" id="how">
+    <h2 class="text-3xl">How it works</h2>
+    <ol class="mt-6 grid gap-4 md:grid-cols-4">
+      {["Sign in with Google", "Fill shop details & drop your pin", "We verify (usually within a day)", "Add sarees & share your shop link"].map((t, i) => (
+        <li class="card p-5"><span class="font-display text-4xl text-zari-500">{i + 1}</span><p class="mt-2 font-semibold">{t}</p></li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="bg-sand/60 py-14" id="plans">
+    <div class="container-x">
+      <h2 class="text-3xl">Plans</h2>
+      <p class="mt-1 text-muted">Prices include GST. Paid plans don't auto-renew. Pay securely with UPI, cards or netbanking via Razorpay.</p>
+      <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {(plans ?? []).map((p) => (
+          <div class:list={["card flex flex-col p-6", p.featured && p.priority >= 20 && "ring-2 ring-zari-500"]}>
+            <p class="font-display text-2xl">{p.name}</p>
+            <p class="mt-1 text-sm text-muted">{p.description}</p>
+            <p class="mt-4"><span class="font-display text-4xl text-maroon-800">₹{p.price_inr.toLocaleString("en-IN")}</span>{p.price_inr > 0 && <span class="text-sm text-muted"> / {p.duration_days >= 360 ? "year" : `${p.duration_days} days`}</span>}</p>
+            <ul class="mt-4 flex-1 space-y-2 text-sm">{p.features.map((f) => <li class="flex gap-2"><span class="text-leaf">✓</span>{f}</li>)}</ul>
+            <a href={p.price_inr === 0 ? "/seller/register" : "/seller"} class:list={["mt-6", p.price_inr === 0 ? "btn-primary" : "btn-outline"]}>{p.price_inr === 0 ? "Start free" : "Upgrade from dashboard"}</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x py-14">
+    <h2 class="text-3xl">Questions</h2>
+    <div class="mt-6 divide-y divide-line rounded-2xl border border-line bg-white">
+      {faq.map(([q, a]) => (
+        <details class="group p-5"><summary class="flex cursor-pointer list-none items-center justify-between font-semibold">{q}<span class="text-muted transition group-open:rotate-45">+</span></summary><p class="mt-2 text-sm text-muted">{a}</p></details>
+      ))}
+    </div>
+  </section>
+</Layout>

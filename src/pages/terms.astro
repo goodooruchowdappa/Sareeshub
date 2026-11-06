@@ -1,0 +1,24 @@
+---
+export const prerender = true;
+import Prose from "../layouts/Prose.astro";
+import { PUBLIC_BUSINESS_NAME, PUBLIC_CONTACT_EMAIL } from "astro:env/client";
+---
+<Prose title="Terms of Use" description="The rules for using Sarees Hub as a buyer or seller." path="/terms" updated="7 November 2026">
+  <p>Sarees Hub is operated by {PUBLIC_BUSINESS_NAME}. By using the site you agree to these terms.</p>
+  <h2>What Sarees Hub is</h2>
+  <p>A directory and map of saree sellers. We are not a party to any sale. Prices, stock, quality, delivery and returns are agreed directly between the buyer and the seller.</p>
+  <h2>Sellers</h2>
+  <ul>
+    <li>Information you submit must be true and you must have the right to sell the products and use the photos you upload.</li>
+    <li>We may approve, reject, edit for clarity, suspend or remove listings that are inaccurate, misleading, duplicated, or break the law.</li>
+    <li>Plan limits (number of sarees and photos) apply as shown on the <a href="/sell#plans">plans page</a>.</li>
+  </ul>
+  <h2>Reviews</h2>
+  <p>Reviews must reflect a genuine experience. We hide reviews that are abusive, fake, or contain personal information. Sellers cannot review their own shops.</p>
+  <h2>Paid plans</h2>
+  <p>Paid plans are prepaid for a fixed period, give extra visibility, and do not renew automatically. See our <a href="/refund-policy">refund & cancellation policy</a>.</p>
+  <h2>Liability</h2>
+  <p>The site is provided “as is”. We are not responsible for transactions between buyers and sellers. Our total liability to a seller is limited to the amount paid for the current plan.</p>
+  <h2>Contact</h2>
+  <p><a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>. These terms are governed by the laws of India.</p>
+</Prose>

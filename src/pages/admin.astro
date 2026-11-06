@@ -1,0 +1,7 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AdminApp from "../components/islands/AdminApp";
+---
+<Layout title="Admin portal" noindex hideFooter>
+  <section class="container-x py-6"><AdminApp client:only="react" /></section>
+</Layout>

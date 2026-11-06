@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  --color-maroon-50: #fbf1f2;
+  --color-maroon-100: #f5dde0;
+  --color-maroon-200: #eabac1;
+  --color-maroon-500: #a63446;
+  --color-maroon-600: #8e2a3b;
+  --color-maroon-700: #7a1f2b;
+  --color-maroon-800: #5f1721;
+  --color-maroon-900: #401017;
+  --color-zari-100: #f8eccf;
+  --color-zari-300: #e8c97b;
+  --color-zari-500: #c8962e;
+  --color-zari-600: #a87a1f;
+  --color-zari-700: #7f5b15;
+  --color-cream: #fbf6ee;
+  --color-sand: #f3eadb;
+  --color-line: #e6dccb;
+  --color-ink: #231b17;
+  --color-muted: #6f625a;
+  --color-leaf: #2f6b4f;
+  --color-leaf-50: #eaf4ee;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
+    sans-serif;
+
+  --shadow-card: 0 1px 2px rgb(35 27 23 / 0.06), 0 8px 24px -12px rgb(35 27 23 / 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display tracking-tight;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-zari-500);
+    outline-offset: 2px;
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@utility container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+@utility btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+    @apply btn bg-maroon-700 text-white shadow-sm hover:bg-maroon-800;
+}
+@utility btn-gold {
+    @apply btn bg-zari-500 text-ink hover:bg-zari-300;
+}
+@utility btn-outline {
+    @apply btn border border-line bg-white text-ink hover:border-maroon-200 hover:bg-maroon-50;
+}
+@utility btn-ghost {
+    @apply btn text-ink hover:bg-sand;
+}
+@utility btn-whatsapp {
+    @apply btn bg-[#1f8f4e] text-white hover:bg-[#187540];
+}
+@utility card {
+    @apply rounded-2xl border border-line bg-white shadow-[var(--shadow-card)];
+}
+@utility chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium
+      text-ink transition hover:border-maroon-200 hover:bg-maroon-50;
+}
+@utility chip-active {
+    @apply border-maroon-700 bg-maroon-700 text-white hover:bg-maroon-800;
+}
+@utility input {
+    @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition
+      placeholder:text-muted/70 focus:border-maroon-500 focus:ring-2 focus:ring-maroon-100;
+}
+@utility label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-muted;
+}
+@utility badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold;
+}
+
+@layer components {
+  .zari-rule {
+    background: linear-gradient(90deg, transparent, var(--color-zari-500) 20%, var(--color-zari-300) 50%, var(--color-zari-500) 80%, transparent);
+    height: 2px;
+  }
+  .border-pattern {
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--color-maroon-700) 0 10px,
+      var(--color-zari-500) 10px 14px,
+      var(--color-maroon-700) 14px 24px,
+      var(--color-zari-300) 24px 26px
+    );
+  }
+}
+
+/* MapLibre controls blend with the theme */
+.maplibregl-ctrl-group {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.maplibregl-popup-content {
+  border-radius: 14px !important;
+  padding: 0 !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep anchored sections (#reviews, #sarees) clear of the sticky header */
+[id] {
+  scroll-margin-top: 5.5rem;
+}

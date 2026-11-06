@@ -1,0 +1,63 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ShopCardC from "../../components/ShopCard.astro";
+import ProductCardC from "../../components/ProductCard.astro";
+import ServiceDown from "../../components/ServiceDown.astro";
+import { load } from "../../lib/server";
+import { absoluteUrl } from "../../lib/format";
+import type { ProductCard, ShopCard } from "../../lib/types";
+
+const { slug } = Astro.params;
+const [tagRes, shopsRes, prodRes] = await Promise.all([
+  load<{ id: string; slug: string; name: string; category: string; shops: number; sarees: number } | null>("get_tag", { p_slug: slug }),
+  load<{ total: number; items: ShopCard[] }>("search_shops", { p_tag: slug, p_limit: 12 }),
+  load<{ total: number; items: ProductCard[] }>("search_products", { p_tags: [slug], p_limit: 24, p_sort: "newest" }),
+]);
+const tag = tagRes.data;
+if (tagRes.error) Astro.response.status = 503;
+else if (!tag) return Astro.rewrite("/404");
+const title = tag ? `${tag.name} sarees` : "Sarees";
+const jsonLd = tag
+  ? [{
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: title,
+      url: absoluteUrl(`/collections/${tag.slug}`),
+      mainEntity: { "@type": "ItemList", numberOfItems: prodRes.data?.total ?? 0,
+        itemListElement: (prodRes.data?.items ?? []).slice(0, 10).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: absoluteUrl(`/sarees/${p.slug}`), name: p.title })) },
+    }]
+  : [];
+---
+{!tag ? <Layout title="Collection" noindex><ServiceDown /></Layout> : (
+<Layout
+  title={`${title} — shops, weavers & prices near you`}
+  description={`Find ${tag.name} sarees from ${tag.shops} shops and weavers. Compare ${tag.sarees} sarees with prices, see shops on the map and contact sellers directly.`}
+  path={`/collections/${tag.slug}`}
+  jsonLd={jsonLd}
+>
+  <section class="border-b border-line bg-sand/60">
+    <div class="container-x py-10">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zari-700">Collection</p>
+      <h1 class="mt-2 text-4xl sm:text-5xl">{title}</h1>
+      <p class="mt-2 max-w-2xl text-muted">{tag.shops} shops & weavers · {tag.sarees} sarees listed. Contact sellers directly for the latest stock.</p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        <a href={`/map?tag=${tag.slug}`} class="btn-primary">See {tag.name} shops on the map</a>
+        <a href={`/sarees?tag=${tag.slug}`} class="btn-outline">Filter these sarees</a>
+      </div>
+    </div>
+  </section>
+  {shopsRes.data && shopsRes.data.items.length > 0 && (
+    <section class="container-x mt-10">
+      <h2 class="text-2xl">Shops that sell {tag.name}</h2>
+      <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">{shopsRes.data.items.map((s) => <ShopCardC shop={s} />)}</div>
+    </section>
+  )}
+  <section class="container-x mt-12">
+    <h2 class="text-2xl">Latest {tag.name} sarees</h2>
+    {prodRes.data && prodRes.data.items.length > 0 ? (
+      <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">{prodRes.data.items.map((p) => <ProductCardC product={p} />)}</div>
+    ) : <p class="mt-3 text-muted">No sarees listed yet — check the shops above.</p>}
+    {prodRes.data && prodRes.data.total > 24 && <div class="mt-8 text-center"><a href={`/sarees?tag=${tag.slug}&page=2`} class="btn-outline">See all {prodRes.data.total} sarees</a></div>}
+  </section>
+</Layout>
+)}

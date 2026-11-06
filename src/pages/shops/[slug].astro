@@ -1,0 +1,293 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Stars from "../../components/Stars.astro";
+import ProductCardC from "../../components/ProductCard.astro";
+import ShopCardC from "../../components/ShopCard.astro";
+import ServiceDown from "../../components/ServiceDown.astro";
+import MiniMap from "../../components/islands/MiniMap";
+import ReviewForm from "../../components/islands/ReviewForm";
+import FavoriteButton from "../../components/islands/FavoriteButton";
+import { load } from "../../lib/server";
+import { kindLabel } from "../../lib/config";
+import { absoluteUrl, dateIN, directionsLink, mediaUrl, placeLine, telLink, truncate, whatsappLink } from "../../lib/format";
+import type { ShopDetail } from "../../lib/types";
+
+const { slug } = Astro.params;
+const { data, error } = await load<ShopDetail | null>("get_shop", { p_slug: slug });
+if (error) Astro.response.status = 503;
+else if (!data) return Astro.rewrite("/404");
+
+const d = data!;
+const s = d?.shop;
+const url = s ? absoluteUrl(`/shops/${s.slug}`) : "";
+const photos = s?.photos ?? [];
+const waText = s ? `Hi ${s.name}, I found your shop on Sarees Hub (${url}). I'd like to know more about your sarees.` : "";
+const description = s
+  ? truncate(
+      s.tagline ||
+        s.description ||
+        `${kindLabel(s.kind)} in ${placeLine(s)}. See sarees, prices, timings, reviews and directions. Call or WhatsApp directly.`,
+      160,
+    )
+  : "";
+const address = s ? [s.address_line, s.landmark, s.locality, s.city, s.district, s.state, s.postal_code, s.country].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(", ") : "";
+
+const jsonLd = s
+  ? [
+      {
+        "@context": "https://schema.org",
+        "@type": "ClothingStore",
+        "@id": url,
+        name: s.name,
+        url,
+        description,
+        image: photos.map((p) => mediaUrl(p)).filter(Boolean),
+        telephone: s.phone,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: [s.address_line, s.locality].filter(Boolean).join(", ") || undefined,
+          addressLocality: s.city,
+          addressRegion: s.state ?? undefined,
+          postalCode: s.postal_code ?? undefined,
+          addressCountry: s.country_code,
+        },
+        geo: { "@type": "GeoCoordinates", latitude: s.lat, longitude: s.lng },
+        hasMap: `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`,
+        ...(s.rating_count > 0
+          ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(s.rating_avg), reviewCount: s.rating_count, bestRating: 5, worstRating: 1 } }
+          : {}),
+        ...(d.reviews.length > 0
+          ? {
+              review: d.reviews.slice(0, 5).map((r) => ({
+                "@type": "Review",
+                reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+                author: { "@type": "Person", name: r.author },
+                datePublished: r.created_at.slice(0, 10),
+                reviewBody: r.comment ?? undefined,
+              })),
+            }
+          : {}),
+        ...(s.established_year ? { foundingDate: String(s.established_year) } : {}),
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+          { "@type": "ListItem", position: 2, name: `Saree shops in ${s.city}`, item: absoluteUrl(`/map?q=${encodeURIComponent(s.city)}`) },
+          { "@type": "ListItem", position: 3, name: s.name, item: url },
+        ],
+      },
+    ]
+  : [];
+const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) => a + Number(b), 0) : 0;
+---
+
+{!s ? (
+  <Layout title="Shop unavailable" noindex><ServiceDown /></Layout>
+) : (
+<Layout
+  title={`${s.name} — ${kindLabel(s.kind)} in ${s.city}`}
+  description={description}
+  path={`/shops/${s.slug}`}
+  image={mediaUrl(photos[0])}
+  imageAlt={s.name}
+  type="profile"
+  jsonLd={jsonLd}
+>
+  <div class="container-x pt-4">
+    <nav aria-label="Breadcrumb" class="text-xs text-muted">
+      <a href="/" class="hover:underline">Home</a> ›
+      <a href={`/map?q=${encodeURIComponent(s.city)}`} class="hover:underline">{s.city}</a> ›
+      <span class="text-ink">{s.name}</span>
+    </nav>
+  </div>
+
+  <section class="container-x mt-3">
+    {photos.length > 0 ? (
+      <div class="grid snap-x grid-flow-col auto-cols-[85%] gap-2 overflow-x-auto rounded-2xl sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-4 sm:grid-rows-2 sm:overflow-hidden" style="scrollbar-width:none">
+        {photos.slice(0, 5).map((p, i) => (
+          <a href={mediaUrl(p)} target="_blank" rel="noopener" class:list={["snap-start overflow-hidden bg-sand", i === 0 ? "sm:col-span-2 sm:row-span-2 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"]}>
+            <img src={mediaUrl(p, i === 0 ? "full" : "thumb")} alt={`${s.name} photo ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} fetchpriority={i === 0 ? "high" : undefined} class="h-full w-full object-cover" />
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="border-pattern h-24 rounded-2xl opacity-80" aria-hidden="true"></div>
+    )}
+  </section>
+
+  <section class="container-x mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="badge bg-maroon-50 text-maroon-800">{kindLabel(s.kind)}</span>
+        <span class="badge bg-leaf-50 text-leaf">✓ Verified listing</span>
+        {s.featured && <span class="badge bg-zari-100 text-zari-700">★ Featured</span>}
+      </div>
+      <h1 class="mt-2 text-3xl leading-tight text-maroon-900 sm:text-4xl">{s.name}</h1>
+      {s.tagline && <p class="mt-1 text-lg text-muted">{s.tagline}</p>}
+      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <Stars rating={s.rating_avg} count={s.rating_count} size="md" />
+        <span class="text-muted">{placeLine(s)}</span>
+        {s.established_year && <span class="text-muted">Since {s.established_year}</span>}
+      </div>
+
+      <div class="mt-5 flex flex-wrap gap-2" data-shop-actions data-shop-id={s.id}>
+        <a href={telLink(s.phone)} class="btn-primary" data-track="call">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.6a1 1 0 01-.25 1z" /></svg>
+          Call {s.phone}
+        </a>
+        {(s.whatsapp || s.phone) && (
+          <a href={whatsappLink(s.whatsapp || s.phone, waText, s.country_code)} target="_blank" rel="noopener" class="btn-whatsapp" data-track="whatsapp">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.2-.7-2.7-1.1-4.4-3.9-4.6-4.1-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z" /></svg>
+            WhatsApp
+          </a>
+        )}
+        <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" class="btn-outline" data-track="directions">
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" /><circle cx="12" cy="10" r="2.5" /></svg>
+          Directions
+        </a>
+        <FavoriteButton client:load shopId={s.id} />
+        <button type="button" class="btn-outline" data-share={url} data-share-title={s.name}>Share</button>
+      </div>
+
+      {s.description && (
+        <section class="mt-8">
+          <h2 class="text-2xl">About</h2>
+          <p class="mt-2 whitespace-pre-line leading-relaxed text-ink/90">{s.description}</p>
+        </section>
+      )}
+
+      {s.tags.length > 0 && (
+        <section class="mt-6">
+          <h2 class="sr-only">Specialities</h2>
+          <div class="flex flex-wrap gap-2">
+            {s.tags.map((t) => <a href={`/collections/${t.slug}`} class="chip">{t.name}</a>)}
+          </div>
+        </section>
+      )}
+
+      <section class="mt-10" id="sarees">
+        <div class="flex items-end justify-between">
+          <h2 class="text-2xl">Sarees at {s.name}</h2>
+          <span class="text-sm text-muted">{d.products.length} listed</span>
+        </div>
+        {d.products.length === 0 ? (
+          <p class="mt-3 rounded-xl bg-sand p-4 text-sm text-muted">This seller hasn't added sarees online yet — call or WhatsApp them to see the latest collection.</p>
+        ) : (
+          <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 xl:grid-cols-4">
+            {d.products.map((p) => <ProductCardC product={p} showShop={false} />)}
+          </div>
+        )}
+      </section>
+
+      <section class="mt-12" id="reviews">
+        <h2 class="text-2xl">Reviews</h2>
+        <div class="mt-4 grid gap-6 md:grid-cols-[220px_1fr]">
+          <div>
+            <p class="font-display text-5xl text-maroon-800">{Number(s.rating_avg).toFixed(1)}</p>
+            <Stars rating={s.rating_avg} count={s.rating_count} />
+            <div class="mt-3 space-y-1">
+              {[5, 4, 3, 2, 1].map((n) => {
+                const c = Number(d.rating_breakdown?.[n] ?? 0);
+                const pct = totalReviews ? Math.round((c / totalReviews) * 100) : 0;
+                return (
+                  <div class="flex items-center gap-2 text-xs">
+                    <span class="w-3">{n}</span>
+                    <span class="h-2 flex-1 overflow-hidden rounded-full bg-sand"><span class="block h-full bg-zari-500" style={`width:${pct}%`}></span></span>
+                    <span class="w-6 text-right text-muted">{c}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <ReviewForm client:visible shopId={s.id} shopName={s.name} />
+            <ul class="mt-6 space-y-5">
+              {d.reviews.map((r) => (
+                <li class="border-b border-line pb-5">
+                  <div class="flex items-center gap-3">
+                    {r.avatar ? <img src={r.avatar} alt="" class="h-9 w-9 rounded-full object-cover" loading="lazy" referrerpolicy="no-referrer" /> : <span class="grid h-9 w-9 place-items-center rounded-full bg-maroon-100 font-bold text-maroon-800">{r.author.slice(0, 1)}</span>}
+                    <div>
+                      <p class="text-sm font-semibold">{r.author}</p>
+                      <div class="flex items-center gap-2"><Stars rating={r.rating} /><span class="text-xs text-muted">{dateIN(r.created_at)}</span></div>
+                    </div>
+                  </div>
+                  {r.comment && <p class="mt-2 whitespace-pre-line text-sm leading-relaxed">{r.comment}</p>}
+                  {r.seller_reply && (
+                    <div class="mt-3 rounded-xl bg-sand p-3 text-sm">
+                      <p class="text-xs font-semibold text-maroon-800">Reply from {s.name}</p>
+                      <p class="mt-1 whitespace-pre-line">{r.seller_reply}</p>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {d.reviews.length === 0 && <p class="mt-4 text-sm text-muted">No reviews yet. Visited this shop? Be the first to review it.</p>}
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="space-y-4 lg:sticky lg:top-24 lg:self-start">
+      <div class="card overflow-hidden">
+        <div class="h-56 bg-sand">
+          <MiniMap client:visible lat={s.lat} lng={s.lng} label={s.name} />
+        </div>
+        <div class="space-y-3 p-4 text-sm">
+          <div>
+            <p class="label">Address</p>
+            <p>{address}</p>
+          </div>
+          {s.hours && (
+            <div>
+              <p class="label">Timings</p>
+              <p>{s.hours}</p>
+            </div>
+          )}
+          {s.owner_name && (
+            <div>
+              <p class="label">Owner</p>
+              <p>{s.owner_name}</p>
+            </div>
+          )}
+          <div class="flex flex-wrap gap-3 pt-1">
+            {s.website && <a href={s.website} rel="noopener nofollow ugc" target="_blank" class="font-semibold text-maroon-700 hover:underline">Website</a>}
+            {s.instagram && <a href={`https://instagram.com/${s.instagram}`} rel="noopener nofollow ugc" target="_blank" class="font-semibold text-maroon-700 hover:underline">Instagram</a>}
+            {s.email && <a href={`mailto:${s.email}`} class="font-semibold text-maroon-700 hover:underline">Email</a>}
+          </div>
+          <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" class="btn-outline w-full" data-track="directions">Get directions</a>
+        </div>
+      </div>
+      <p class="px-1 text-xs text-muted">
+        Listed since {dateIN(s.approved_at)}. Prices and stock are set by the seller — confirm with them before visiting.
+        <a href={`/contact?report=${s.slug}`} class="underline">Report this listing</a>
+      </p>
+    </aside>
+  </section>
+
+  {d.nearby.length > 0 && (
+    <section class="container-x mt-14">
+      <h2 class="text-2xl">More saree shops nearby</h2>
+      <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {d.nearby.map((n) => <ShopCardC shop={n} />)}
+      </div>
+    </section>
+  )}
+</Layout>
+)}
+
+<script>
+  import { trackShop, shareLink } from "../../lib/track";
+  const box = document.querySelector<HTMLElement>("[data-shop-actions]");
+  const shopId = box?.dataset.shopId;
+  if (shopId) {
+    trackShop(shopId, "view", true);
+    document.querySelectorAll<HTMLElement>("[data-track]").forEach((el) =>
+      el.addEventListener("click", () => trackShop(shopId, el.dataset.track as "call")),
+    );
+  }
+  document.querySelectorAll<HTMLButtonElement>("[data-share]").forEach((b) =>
+    b.addEventListener("click", () => shareLink(b.dataset.share!, b.dataset.shareTitle ?? "", b)),
+  );
+</script>

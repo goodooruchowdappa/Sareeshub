@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers config. Secrets are set with `npx wrangler secret put NAME` (see README).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sarees-hub",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./dist/client", "binding": "ASSETS" },
+  "observability": { "enabled": true }
+}
