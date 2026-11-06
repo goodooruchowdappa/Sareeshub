@@ -105,9 +105,27 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
 
   <section class="container-x mt-3">
     {photos.length > 0 ? (
-      <div class="grid snap-x grid-flow-col auto-cols-[85%] gap-2 overflow-x-auto rounded-2xl sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-4 sm:grid-rows-2 sm:overflow-hidden" style="scrollbar-width:none">
+      <div
+        class:list={[
+          "grid snap-x grid-flow-col auto-cols-[85%] gap-2 overflow-x-auto rounded-2xl sm:grid-flow-row sm:auto-cols-auto sm:overflow-hidden",
+          photos.length === 1 && "sm:grid-cols-1",
+          photos.length === 2 && "sm:grid-cols-2",
+          photos.length === 3 && "sm:grid-cols-3",
+          photos.length >= 4 && "sm:grid-cols-4 sm:grid-rows-2",
+        ]}
+        style="scrollbar-width:none"
+      >
         {photos.slice(0, 5).map((p, i) => (
-          <a href={mediaUrl(p)} target="_blank" rel="noopener" class:list={["snap-start overflow-hidden bg-sand", i === 0 ? "sm:col-span-2 sm:row-span-2 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"]}>
+          <a
+            href={mediaUrl(p)}
+            target="_blank"
+            rel="noopener"
+            class:list={[
+              "snap-start overflow-hidden bg-sand",
+              photos.length === 1 ? "aspect-[4/3] sm:aspect-[21/9]" : "aspect-[4/3]",
+              photos.length >= 4 && i === 0 && "sm:col-span-2 sm:row-span-2 sm:aspect-auto",
+            ]}
+          >
             <img src={mediaUrl(p, i === 0 ? "full" : "thumb")} alt={`${s.name} photo ${i + 1}`} loading={i === 0 ? "eager" : "lazy"} fetchpriority={i === 0 ? "high" : undefined} class="h-full w-full object-cover" />
           </a>
         ))}
@@ -117,7 +135,7 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
     )}
   </section>
 
-  <section class="container-x mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
+  <section class="container-x mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
     <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-2">
         <span class="badge bg-brand-50 text-brand-800">{kindLabel(s.kind)}</span>
