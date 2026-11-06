@@ -66,7 +66,7 @@ export default function AccountPage() {
           ) : (
             <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
               {act.favorites.map((s) => (
-                <a key={s.id} href={`/shops/${s.slug}`} className="card overflow-hidden hover:border-maroon-200">
+                <a key={s.id} href={`/shops/${s.slug}`} className="card overflow-hidden hover:border-brand-200">
                   <div className="aspect-[4/3] bg-sand">{s.cover && <img src={mediaUrl(s.cover, "thumb")!} alt="" className="h-full w-full object-cover" loading="lazy" />}</div>
                   <div className="p-3">
                     <p className="font-semibold">{s.name}</p>
@@ -86,10 +86,10 @@ export default function AccountPage() {
               {act.reviews.map((r) => (
                 <li key={r.id} className="card p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <a href={`/shops/${r.shop.slug}#reviews`} className="font-semibold hover:text-maroon-700">{r.shop.name}</a>
+                    <a href={`/shops/${r.shop.slug}#reviews`} className="font-semibold hover:text-brand-700">{r.shop.name}</a>
                     <span className="text-sm text-zari-600">{"★".repeat(r.rating)}<span className="text-line">{"★".repeat(5 - r.rating)}</span></span>
                   </div>
-                  <p className="text-xs text-muted">{r.shop.city} · {dateIN(r.created_at)} {r.hidden && <span className="text-maroon-700">· hidden by moderators</span>}</p>
+                  <p className="text-xs text-muted">{r.shop.city} · {dateIN(r.created_at)} {r.hidden && <span className="text-brand-700">· hidden by moderators</span>}</p>
                   {r.comment && <p className="mt-2 text-sm">{r.comment}</p>}
                   {r.seller_reply && <p className="mt-2 rounded-lg bg-sand p-2 text-sm"><strong>Shop replied:</strong> {r.seller_reply}</p>}
                 </li>

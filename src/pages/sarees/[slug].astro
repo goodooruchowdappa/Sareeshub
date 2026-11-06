@@ -93,7 +93,7 @@ const jsonLd = p
       {p.images.length > 1 && (
         <div class="mt-2 grid grid-cols-6 gap-2">
           {p.images.map((img, i) => (
-            <button type="button" data-img={mediaUrl(img)} class="overflow-hidden rounded-lg border-2 border-transparent bg-sand aria-[current=true]:border-maroon-700" aria-current={i === 0 ? "true" : "false"} aria-label={`Photo ${i + 1}`}>
+            <button type="button" data-img={mediaUrl(img)} class="overflow-hidden rounded-lg border-2 border-transparent bg-sand aria-[current=true]:border-brand-700" aria-current={i === 0 ? "true" : "false"} aria-label={`Photo ${i + 1}`}>
               <img src={mediaUrl(img, "thumb")} alt="" class="aspect-[3/4] w-full object-cover" loading="lazy" />
             </button>
           ))}
@@ -105,7 +105,7 @@ const jsonLd = p
       <a href={`/shops/${s.slug}`} class="text-sm font-semibold uppercase tracking-wide text-zari-700 hover:underline">{s.name}</a>
       <h1 class="mt-1 text-3xl leading-tight sm:text-4xl">{p.title}</h1>
       <div class="mt-4 flex items-baseline gap-3">
-        <span class="font-display text-4xl text-maroon-800">{rupees(p.price_inr)}</span>
+        <span class="font-display text-4xl text-brand-800">{rupees(p.price_inr)}</span>
         {p.mrp_inr && p.price_inr && p.mrp_inr > p.price_inr && <span class="text-lg text-muted line-through">{rupees(p.mrp_inr)}</span>}
         {off >= 5 && <span class="badge bg-leaf-50 text-leaf">{off}% off</span>}
       </div>
@@ -130,7 +130,7 @@ const jsonLd = p
         </div>
       )}
 
-      <a href={`/shops/${s.slug}`} class="card mt-6 flex items-center gap-4 p-4 hover:border-maroon-200">
+      <a href={`/shops/${s.slug}`} class="card mt-6 flex items-center gap-4 p-4 hover:border-brand-200">
         {s.cover ? <img src={mediaUrl(s.cover, "thumb")} alt="" class="h-16 w-16 rounded-xl object-cover" loading="lazy" /> : <span class="border-pattern h-16 w-16 rounded-xl"></span>}
         <div class="min-w-0">
           <p class="text-xs font-semibold uppercase tracking-wide text-zari-700">{kindLabel(s.kind)}</p>

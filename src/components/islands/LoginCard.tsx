@@ -28,11 +28,11 @@ export default function LoginCard() {
       <p className="mt-2 text-sm text-muted">
         Use your Google account to review shops, save favourites, or register your shop. We never post anything on your behalf.
       </p>
-      {reason && <p className="mt-4 rounded-lg bg-maroon-50 p-3 text-sm text-maroon-800">Sign-in didn't complete. Please try again.</p>}
+      {reason && <p className="mt-4 rounded-lg bg-brand-50 p-3 text-sm text-brand-800">Sign-in didn't complete. Please try again.</p>}
       <button onClick={go} disabled={busy} className="btn-outline mt-6 w-full !py-3 text-base">
         <GoogleIcon /> {busy ? "Opening Google…" : "Continue with Google"}
       </button>
-      {err && <p className="mt-3 text-sm text-maroon-700">{err}</p>}
+      {err && <p className="mt-3 text-sm text-brand-700">{err}</p>}
       <p className="mt-6 text-xs text-muted">
         By continuing you agree to our <a className="underline" href="/terms">Terms</a> and <a className="underline" href="/privacy">Privacy Policy</a>.
       </p>

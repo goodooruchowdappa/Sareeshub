@@ -4,7 +4,7 @@ export const SITE = {
   description:
     "Discover saree shops, handloom weavers, wholesalers and showrooms on a map. Browse pure pattu, semi pattu, Kanchipuram, Banarasi and more — then call, WhatsApp or get directions.",
   locale: "en_IN",
-  themeColor: "#861a3a",
+  themeColor: "#2f8045",
 };
 
 export const SHOP_KINDS = [

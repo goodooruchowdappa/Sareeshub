@@ -71,7 +71,7 @@ export default function AdminApp() {
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
       <nav className="flex gap-1 overflow-x-auto lg:flex-col" aria-label="Admin sections">
         {nav.map(([t, l, n]) => (
-          <button key={t} onClick={() => go(t)} className={`flex shrink-0 items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium ${tab === t ? "bg-maroon-700 text-white" : "hover:bg-sand"}`}>
+          <button key={t} onClick={() => go(t)} className={`flex shrink-0 items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium ${tab === t ? "bg-brand-700 text-white" : "hover:bg-sand"}`}>
             {l}
             {!!n && <span className={`rounded-full px-2 text-xs ${tab === t ? "bg-white/20" : "bg-zari-300 text-ink"}`}>{n}</span>}
           </button>
@@ -125,8 +125,8 @@ function OverviewPanel({ ov, go }: { ov: Overview | null; go: (t: Tab) => void }
       <h1 className="text-3xl">Admin overview</h1>
       <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {cards.map(([l, v, t]) => (
-          <button key={l} disabled={!t} onClick={() => t && go(t)} className="card p-4 text-left enabled:hover:border-maroon-200">
-            <p className="font-display text-3xl text-maroon-800">{v}</p>
+          <button key={l} disabled={!t} onClick={() => t && go(t)} className="card p-4 text-left enabled:hover:border-brand-200">
+            <p className="font-display text-3xl text-brand-800">{v}</p>
             <p className="text-xs text-muted">{l}</p>
           </button>
         ))}
@@ -174,7 +174,7 @@ function ShopList({ status, changes, filterable, onOpen }: { status?: string; ch
         <ul className="mt-4 space-y-2">
           {res.items.map((s) => (
             <li key={s.id}>
-              <button onClick={() => onOpen(s.id)} className="card flex w-full items-center gap-3 p-3 text-left hover:border-maroon-200">
+              <button onClick={() => onOpen(s.id)} className="card flex w-full items-center gap-3 p-3 text-left hover:border-brand-200">
                 <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-sand">{s.cover && <img src={mediaUrl(s.cover, "thumb")!} alt="" className="h-full w-full object-cover" />}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{s.name}</span>
@@ -202,7 +202,7 @@ function ShopList({ status, changes, filterable, onOpen }: { status?: string; ch
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const c: Record<string, string> = { pending: "bg-zari-100 text-zari-700", approved: "bg-leaf-50 text-leaf", rejected: "bg-maroon-50 text-maroon-800", suspended: "bg-ink text-white" };
+  const c: Record<string, string> = { pending: "bg-zari-100 text-zari-700", approved: "bg-leaf-50 text-leaf", rejected: "bg-brand-50 text-brand-800", suspended: "bg-ink text-white" };
   return <span className={`badge ${c[status] ?? "bg-sand"}`}>{status}</span>;
 }
 
@@ -295,7 +295,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
                 <div key={k as string} className="contents"><dt className="text-muted">{k as string}</dt><dd className="min-w-0 break-words">{v as React.ReactNode}</dd></div>
               ))}
             </dl>
-            <a className="text-sm font-semibold text-maroon-700 underline" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}>Check the pin on Google Maps ↗</a>
+            <a className="text-sm font-semibold text-brand-700 underline" target="_blank" href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}>Check the pin on Google Maps ↗</a>
 
             {s.pending_changes && (
               <div className="rounded-2xl border border-zari-300 bg-zari-100 p-4 text-sm">
@@ -323,7 +323,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
                 <button className="btn-ghost" onClick={() => setEdit(true)}>Edit details</button>
                 {s.status === "approved" && <a className="btn-ghost" target="_blank" href={`/shops/${s.slug}?fresh=1`}>Public page ↗</a>}
               </div>
-              {err && <p className="text-sm text-maroon-700">{err}</p>}
+              {err && <p className="text-sm text-brand-700">{err}</p>}
             </div>
 
             <div className="card space-y-2 p-4 text-sm">
@@ -348,7 +348,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
                 </div>
               </div>
             )}
-            <button className="text-xs text-maroon-700 underline" onClick={() => confirm("Delete this shop and all its sarees permanently?") && act("admin_delete_shop", { p_shop: s.id }, "Shop deleted").then(onClose)}>
+            <button className="text-xs text-brand-700 underline" onClick={() => confirm("Delete this shop and all its sarees permanently?") && act("admin_delete_shop", { p_shop: s.id }, "Shop deleted").then(onClose)}>
               Delete shop permanently
             </button>
           </div>
@@ -447,7 +447,7 @@ function TagsPanel({ flash }: { flash: (m: string) => void }) {
           <tbody>
             {list.map((t) => (
               <tr key={t.id} className={`border-t border-line ${t.hidden ? "opacity-50" : ""}`}>
-                <td className="p-2.5 font-medium">{t.name} {t.is_default && <span className="badge bg-maroon-50 text-maroon-800">common</span>} {t.hidden && <span className="badge bg-sand">hidden</span>}</td>
+                <td className="p-2.5 font-medium">{t.name} {t.is_default && <span className="badge bg-brand-50 text-brand-800">common</span>} {t.hidden && <span className="badge bg-sand">hidden</span>}</td>
                 <td className="p-2.5">{categoryLabel(t.category)}</td>
                 <td className="p-2.5">{t.products} sarees · {t.shops} shops</td>
                 <td className="p-2.5 text-xs text-muted">{t.created_by ?? "system"}</td>
@@ -571,7 +571,7 @@ function PaymentsPanel() {
                 <td className="p-2.5">{p.plan_code}</td>
                 <td className="p-2.5">{paise(p.amount_paise)}</td>
                 <td className="p-2.5"><StatusBadge status={p.status === "paid" ? "approved" : p.status === "failed" ? "rejected" : "pending"} /> <span className="text-xs">{p.status}</span></td>
-                <td className="p-2.5 font-mono text-xs">{p.provider === "manual" ? `manual · ${p.note ?? ""}` : p.razorpay_payment_id ?? p.razorpay_order_id}{p.error_reason && <span className="block text-maroon-700">{p.error_reason}</span>}</td>
+                <td className="p-2.5 font-mono text-xs">{p.provider === "manual" ? `manual · ${p.note ?? ""}` : p.razorpay_payment_id ?? p.razorpay_order_id}{p.error_reason && <span className="block text-brand-700">{p.error_reason}</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -607,7 +607,7 @@ function TeamPanel({ flash }: { flash: (m: string) => void }) {
       <ul className="mt-3 space-y-2">
         {users.map((u) => (
           <li key={u.id} className="card flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-            <span><strong>{u.full_name ?? "—"}</strong> <span className="text-muted">{u.email}</span>{u.is_admin && <span className="badge ml-2 bg-maroon-700 text-white">admin</span>}<span className="block text-xs text-muted">Joined {dateIN(u.created_at)} · {u.shops} shops · {u.reviews} reviews</span></span>
+            <span><strong>{u.full_name ?? "—"}</strong> <span className="text-muted">{u.email}</span>{u.is_admin && <span className="badge ml-2 bg-brand-700 text-white">admin</span>}<span className="block text-xs text-muted">Joined {dateIN(u.created_at)} · {u.shops} shops · {u.reviews} reviews</span></span>
             <button className="btn-ghost !py-1 text-xs" onClick={() => setAdmin(u.email, !u.is_admin)}>{u.is_admin ? "Remove admin" : "Make admin"}</button>
           </li>
         ))}

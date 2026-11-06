@@ -61,7 +61,7 @@ export function Section({ n, title, children, note }: { n: number; title: string
   return (
     <section className="card p-5 sm:p-6">
       <h2 className="flex items-center gap-3 text-xl">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-maroon-700 font-sans text-sm font-bold text-white">{n}</span>
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-700 font-sans text-sm font-bold text-white">{n}</span>
         {title}
       </h2>
       {note && <p className="mt-2 rounded-lg bg-zari-100 px-3 py-2 text-xs text-zari-700">{note}</p>}
@@ -129,7 +129,7 @@ export default function ShopForm({ initial, maxPhotos, submitLabel, onSubmit, li
           <legend className="label">What best describes you? *</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {SHOP_KINDS.map((k) => (
-              <label key={k.value} className={`cursor-pointer rounded-xl border px-3 py-2 text-sm ${v.kind === k.value ? "border-maroon-700 bg-maroon-50 font-semibold" : "border-line bg-white"}`}>
+              <label key={k.value} className={`cursor-pointer rounded-xl border px-3 py-2 text-sm ${v.kind === k.value ? "border-brand-700 bg-brand-50 font-semibold" : "border-line bg-white"}`}>
                 <input type="radio" name="kind" value={k.value} checked={v.kind === k.value} onChange={() => set("kind", k.value)} className="sr-only" />
                 {k.label}
               </label>
@@ -248,7 +248,7 @@ export default function ShopForm({ initial, maxPhotos, submitLabel, onSubmit, li
         />
       </Section>
 
-      {err && <p className="rounded-xl bg-maroon-50 p-3 text-sm text-maroon-800" role="alert">{err}</p>}
+      {err && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800" role="alert">{err}</p>}
       <div className="sticky bottom-0 z-10 -mx-4 border-t border-line bg-cream/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
         <button className="btn-primary w-full !py-3 text-base sm:w-auto sm:px-8" disabled={busy}>
           {busy ? "Saving…" : submitLabel}

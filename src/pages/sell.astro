@@ -17,7 +17,7 @@ const faq = [
   path="/sell"
   jsonLd={[{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }]}
 >
-  <section class="border-b border-line bg-gradient-to-br from-maroon-700 via-maroon-800 to-maroon-900 text-cream">
+  <section class="border-b border-line bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 text-cream">
     <div class="container-x grid gap-8 py-14 lg:grid-cols-2 lg:items-center">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zari-300">For shops, weavers & wholesalers</p>
@@ -59,7 +59,7 @@ const faq = [
           <div class:list={["card flex flex-col p-6", p.featured && p.priority >= 20 && "ring-2 ring-zari-500"]}>
             <p class="font-display text-2xl">{p.name}</p>
             <p class="mt-1 text-sm text-muted">{p.description}</p>
-            <p class="mt-4"><span class="font-display text-4xl text-maroon-800">₹{p.price_inr.toLocaleString("en-IN")}</span>{p.price_inr > 0 && <span class="text-sm text-muted"> / {p.duration_days >= 360 ? "year" : `${p.duration_days} days`}</span>}</p>
+            <p class="mt-4"><span class="font-display text-4xl text-brand-800">₹{p.price_inr.toLocaleString("en-IN")}</span>{p.price_inr > 0 && <span class="text-sm text-muted"> / {p.duration_days >= 360 ? "year" : `${p.duration_days} days`}</span>}</p>
             <ul class="mt-4 flex-1 space-y-2 text-sm">{p.features.map((f) => <li class="flex gap-2"><span class="text-leaf">✓</span>{f}</li>)}</ul>
             <a href={p.price_inr === 0 ? "/seller/register" : "/seller"} class:list={["mt-6", p.price_inr === 0 ? "btn-primary" : "btn-outline"]}>{p.price_inr === 0 ? "Start free" : "Upgrade from dashboard"}</a>
           </div>

@@ -27,14 +27,14 @@ export default function AccountMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-full border border-line bg-white p-0.5 pr-2 hover:border-maroon-200"
+        className="flex items-center gap-2 rounded-full border border-line bg-white p-0.5 pr-2 hover:border-brand-200"
         aria-haspopup="menu"
         aria-expanded={open}
       >
         {me.avatar_url ? (
           <img src={me.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" referrerPolicy="no-referrer" />
         ) : (
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-maroon-700 text-sm font-bold text-white">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-sm font-bold text-white">
             {initials}
           </span>
         )}

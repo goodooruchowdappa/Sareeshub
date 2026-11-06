@@ -25,7 +25,7 @@ export default function SellerRegister() {
       {me.shops.length > 0 && (
         <div className="rounded-2xl border border-line bg-white p-4 text-sm">
           You already have {me.shops.length === 1 ? "a shop" : `${me.shops.length} shops`} registered.{" "}
-          <a className="font-semibold text-maroon-700 underline" href="/seller">Go to your dashboard</a> — or add another branch below.
+          <a className="font-semibold text-brand-700 underline" href="/seller">Go to your dashboard</a> — or add another branch below.
         </div>
       )}
       <ShopForm

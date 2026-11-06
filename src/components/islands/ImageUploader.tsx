@@ -54,24 +54,24 @@ export default function ImageUploader({ value, onChange, max, folder, label, hin
         {value.map((p, i) => (
           <div key={p} className="group relative aspect-square overflow-hidden rounded-xl border border-line bg-sand">
             <img src={mediaUrl(p, "thumb")!} alt="" className="h-full w-full object-cover" />
-            {i === 0 && <span className="badge absolute left-1 top-1 bg-maroon-700 text-white">Cover</span>}
+            {i === 0 && <span className="badge absolute left-1 top-1 bg-brand-700 text-white">Cover</span>}
             <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/60 p-1">
               <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="rounded bg-white/90 px-1.5 text-xs disabled:opacity-30" aria-label="Move left">←</button>
-              <button type="button" onClick={() => onChange(value.filter((x) => x !== p))} className="rounded bg-white/90 px-1.5 text-xs text-maroon-700" aria-label="Remove photo">✕</button>
+              <button type="button" onClick={() => onChange(value.filter((x) => x !== p))} className="rounded bg-white/90 px-1.5 text-xs text-brand-700" aria-label="Remove photo">✕</button>
               <button type="button" onClick={() => move(i, 1)} disabled={i === value.length - 1} className="rounded bg-white/90 px-1.5 text-xs disabled:opacity-30" aria-label="Move right">→</button>
             </div>
           </div>
         ))}
         {Array.from({ length: busy }).map((_, i) => (
           <div key={`b${i}`} className="grid aspect-square place-items-center rounded-xl border border-dashed border-line bg-white text-xs text-muted">
-            <span className="h-6 w-6 animate-spin rounded-full border-2 border-sand border-t-maroon-700" />
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-sand border-t-brand-700" />
           </div>
         ))}
         {value.length + busy < max && (
           <button
             type="button"
             onClick={() => input.current?.click()}
-            className="grid aspect-square place-items-center rounded-xl border-2 border-dashed border-line bg-white text-center text-xs font-semibold text-muted hover:border-maroon-200 hover:text-maroon-700"
+            className="grid aspect-square place-items-center rounded-xl border-2 border-dashed border-line bg-white text-center text-xs font-semibold text-muted hover:border-brand-200 hover:text-brand-700"
           >
             <span>
               <span className="block text-2xl">＋</span>Add photo
@@ -80,7 +80,7 @@ export default function ImageUploader({ value, onChange, max, folder, label, hin
         )}
       </div>
       <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} />
-      {err && <p className="mt-2 text-xs text-maroon-700">{err}</p>}
+      {err && <p className="mt-2 text-xs text-brand-700">{err}</p>}
     </div>
   );
 }

@@ -83,7 +83,7 @@ export default function SellerApp() {
         <a className="btn-primary mt-6" href="/seller/register">Register your shop</a>
       </div>
     );
-  if (err) return <p className="rounded-xl bg-maroon-50 p-4 text-maroon-800">{err}</p>;
+  if (err) return <p className="rounded-xl bg-brand-50 p-4 text-brand-800">{err}</p>;
   if (!data) return <Skeleton />;
 
   const s = data.shop;
@@ -117,7 +117,7 @@ export default function SellerApp() {
 
       <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-line" aria-label="Dashboard sections" style={{ scrollbarWidth: "none" }}>
         {tabs.map(([t, l]) => (
-          <button key={t} onClick={() => go(t)} className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-semibold ${tab === t ? "border-maroon-700 text-maroon-800" : "border-transparent text-muted hover:text-ink"}`} aria-current={tab === t ? "page" : undefined}>
+          <button key={t} onClick={() => go(t)} className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-semibold ${tab === t ? "border-brand-700 text-brand-800" : "border-transparent text-muted hover:text-ink"}`} aria-current={tab === t ? "page" : undefined}>
             {l}
           </button>
         ))}
@@ -165,15 +165,15 @@ function StatusBanner({ data, isNew, onEdit, onCancelChanges }: { data: MyShop; 
         </div>
       )}
       {s.status === "rejected" && (
-        <div className="rounded-2xl border border-maroon-200 bg-maroon-50 p-4 text-sm">
-          <p className="font-semibold text-maroon-800">Needs changes before it can go live</p>
+        <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm">
+          <p className="font-semibold text-brand-800">Needs changes before it can go live</p>
           {s.review_note && <p className="mt-1">“{s.review_note}”</p>}
           <button className="btn-primary mt-3" onClick={onEdit}>Fix & resubmit</button>
         </div>
       )}
       {s.status === "suspended" && (
-        <div className="rounded-2xl border border-maroon-200 bg-maroon-50 p-4 text-sm">
-          <p className="font-semibold text-maroon-800">Your listing is hidden</p>
+        <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm">
+          <p className="font-semibold text-brand-800">Your listing is hidden</p>
           {s.review_note && <p className="mt-1">Reason: {s.review_note}</p>}
           <p className="mt-1">Please <a className="underline" href="/contact">contact us</a> to restore it.</p>
         </div>
@@ -208,7 +208,7 @@ function Overview({ data, go }: { data: MyShop; go: (t: Tab) => void }) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[["Page views", st.views], ["Calls", st.calls], ["WhatsApp", st.whatsapp], ["Directions", st.directions], ["Saved by", data.stats.favorites]].map(([l, n]) => (
             <div key={l as string} className="card p-4">
-              <p className="font-display text-3xl text-maroon-800">{n}</p>
+              <p className="font-display text-3xl text-brand-800">{n}</p>
               <p className="text-xs text-muted">{l}{l !== "Saved by" && " · 30 days"}</p>
             </div>
           ))}
@@ -219,11 +219,11 @@ function Overview({ data, go }: { data: MyShop; go: (t: Tab) => void }) {
             {data.stats.daily.map((d) => (
               <div key={d.day} className="flex flex-1 flex-col justify-end" title={`${dateIN(d.day)}: ${d.views} views, ${d.leads} leads`}>
                 <div className="rounded-t-sm bg-zari-500" style={{ height: `${(d.leads / max) * 100}%` }} />
-                <div className="bg-maroon-200" style={{ height: `${(d.views / max) * 100}%` }} />
+                <div className="bg-brand-200" style={{ height: `${(d.views / max) * 100}%` }} />
               </div>
             ))}
           </div>
-          <p className="mt-2 flex gap-4 text-xs text-muted"><span><span className="mr-1 inline-block h-2 w-2 bg-maroon-200" />Views</span><span><span className="mr-1 inline-block h-2 w-2 bg-zari-500" />Calls, WhatsApp & directions</span></p>
+          <p className="mt-2 flex gap-4 text-xs text-muted"><span><span className="mr-1 inline-block h-2 w-2 bg-brand-200" />Views</span><span><span className="mr-1 inline-block h-2 w-2 bg-zari-500" />Calls, WhatsApp & directions</span></p>
         </div>
         {data.shop.status === "approved" && (
           <div className="card p-4">
@@ -252,12 +252,12 @@ function Overview({ data, go }: { data: MyShop; go: (t: Tab) => void }) {
         <div className="card p-4 text-sm">
           <p className="font-semibold">{data.plan.name} plan</p>
           <p className="text-muted">{data.usage.products} of {data.usage.max_products} sarees used{data.plan_ends_at && data.plan.code !== "free" ? ` · until ${dateIN(data.plan_ends_at)}` : ""}</p>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-sand"><div className="h-full bg-maroon-700" style={{ width: `${Math.min(100, (data.usage.products / Math.max(1, data.usage.max_products)) * 100)}%` }} /></div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-sand"><div className="h-full bg-brand-700" style={{ width: `${Math.min(100, (data.usage.products / Math.max(1, data.usage.max_products)) * 100)}%` }} /></div>
           {!data.plan.featured && <button className="btn-gold mt-3 w-full" onClick={() => go("plan")}>Get featured</button>}
         </div>
         <div className="card p-4 text-sm">
           <p className="font-semibold">Rating</p>
-          <p className="font-display text-3xl text-maroon-800">{Number(s.rating_avg).toFixed(1)} <span className="text-base text-muted">({s.rating_count})</span></p>
+          <p className="font-display text-3xl text-brand-800">{Number(s.rating_avg).toFixed(1)} <span className="text-base text-muted">({s.rating_count})</span></p>
           <button className="mt-1 underline" onClick={() => go("reviews")}>Reply to reviews</button>
         </div>
       </aside>
@@ -328,13 +328,13 @@ function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promi
                 <p className="text-sm font-semibold">{rupees(p.price_inr)}</p>
                 <div className="flex flex-wrap gap-1 text-[11px]">
                   {!p.active && <span className="badge bg-sand">Hidden</span>}
-                  {!p.in_stock && <span className="badge bg-maroon-50 text-maroon-800">Out of stock</span>}
+                  {!p.in_stock && <span className="badge bg-brand-50 text-brand-800">Out of stock</span>}
                 </div>
                 <div className="flex flex-wrap gap-1 pt-1">
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => setEditing(p)}>Edit</button>
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => quick(p, { in_stock: !p.in_stock })}>{p.in_stock ? "Mark sold out" : "Back in stock"}</button>
                   <button className="btn-ghost !px-2 !py-1 text-xs" onClick={() => quick(p, { active: !p.active })}>{p.active ? "Hide" : "Show"}</button>
-                  <button className="btn-ghost !px-2 !py-1 text-xs text-maroon-700" onClick={() => del(p)}>Delete</button>
+                  <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700" onClick={() => del(p)}>Delete</button>
                 </div>
               </div>
             </div>
@@ -413,7 +413,7 @@ function ProductEditor({ shopId, initial, onCancel, onSaved }: { shopId: string;
         <textarea id="p-desc" className="input min-h-24" maxLength={3000} value={p.description ?? ""} onChange={(e) => set("description", e.target.value)} placeholder="Weight, border width, care instructions, wholesale price for 10+ pieces…" />
       </div>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={p.active} onChange={(e) => set("active", e.target.checked)} /> Show this saree on my page</label>
-      {err && <p className="rounded-xl bg-maroon-50 p-3 text-sm text-maroon-800">{err}</p>}
+      {err && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800">{err}</p>}
       <div className="flex flex-wrap gap-2">
         <button className="btn-primary" disabled={busy}>{busy ? "Saving…" : "Save"}</button>
         {!p.id && <button type="button" className="btn-outline" disabled={busy} onClick={() => save(true)}>Save & add another</button>}
@@ -488,12 +488,12 @@ function Billing({ data, me, reload, flash }: { data: MyShop; me: Me; reload: ()
         <p className="text-sm text-muted">{data.usage.products}/{data.usage.max_products} sarees · {data.usage.max_photos} shop photos</p>
       </div>
       {!approved && <p className="rounded-xl bg-zari-100 p-3 text-sm text-zari-700">You can buy a plan once your shop is approved.</p>}
-      {err && <p className="rounded-xl bg-maroon-50 p-3 text-sm text-maroon-800" role="alert">{err}</p>}
+      {err && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800" role="alert">{err}</p>}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((p) => (
-          <div key={p.code} className={`card flex flex-col p-5 ${p.code === data.plan.code ? "ring-2 ring-maroon-700" : ""}`}>
+          <div key={p.code} className={`card flex flex-col p-5 ${p.code === data.plan.code ? "ring-2 ring-brand-700" : ""}`}>
             <p className="font-display text-xl">{p.name}</p>
-            <p className="mt-1"><span className="font-display text-3xl text-maroon-800">₹{p.price_inr.toLocaleString("en-IN")}</span>{p.price_inr > 0 && <span className="text-xs text-muted"> / {p.duration_days} days</span>}</p>
+            <p className="mt-1"><span className="font-display text-3xl text-brand-800">₹{p.price_inr.toLocaleString("en-IN")}</span>{p.price_inr > 0 && <span className="text-xs text-muted"> / {p.duration_days} days</span>}</p>
             <ul className="mt-3 flex-1 space-y-1 text-sm">{p.features.map((f) => <li key={f}>✓ {f}</li>)}</ul>
             {p.price_inr > 0 ? (
               <button className="btn-primary mt-4" disabled={!approved || !!busy} onClick={() => buy(p.code)}>
@@ -518,7 +518,7 @@ function Billing({ data, me, reload, flash }: { data: MyShop; me: Me; reload: ()
                     <td className="whitespace-nowrap p-3">{dateIN(p.paid_at ?? p.created_at)}</td>
                     <td className="p-3">{plans.find((x) => x.code === p.plan_code)?.name ?? p.plan_code}</td>
                     <td className="p-3">{paise(p.amount_paise)}</td>
-                    <td className="p-3"><span className={`badge ${p.status === "paid" ? "bg-leaf-50 text-leaf" : "bg-maroon-50 text-maroon-800"}`}>{p.status}</span></td>
+                    <td className="p-3"><span className={`badge ${p.status === "paid" ? "bg-leaf-50 text-leaf" : "bg-brand-50 text-brand-800"}`}>{p.status}</span></td>
                     <td className="p-3 font-mono text-xs">{p.razorpay_payment_id ?? (p.provider === "manual" ? "Offline" : "—")}</td>
                   </tr>
                 ))}

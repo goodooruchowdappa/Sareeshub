@@ -102,7 +102,7 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
         {kind && <a class="chip chip-active" href={withParams({ kind: null })}>{SHOP_KINDS.find((k) => k.value === kind)?.plural ?? kind} ✕</a>}
         {lat != null && <a class="chip chip-active" href={withParams({ lat: null, lng: null, r: null, sort: sort === "nearest" ? null : sort })}>Within {radius} km ✕</a>}
         {inStock && <a class="chip chip-active" href={withParams({ stock: null })}>In stock ✕</a>}
-        <a class="text-maroon-700 underline" href="/sarees">Clear all</a>
+        <a class="text-brand-700 underline" href="/sarees">Clear all</a>
       </div>
     )}
   </div>
@@ -118,7 +118,7 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
               <ul class="space-y-1 text-sm">
                 {PRICE_BANDS.map((b) => {
                   const on = (b.min ?? null) === (min ?? null) && (b.max ?? null) === (max ?? null);
-                  return <li><a class:list={["block rounded-lg px-2 py-1 hover:bg-sand", on && "bg-maroon-50 font-semibold text-maroon-800"]} href={withParams({ min: b.min != null ? String(b.min) : null, max: b.max != null ? String(b.max) : null })}>{b.label}</a></li>;
+                  return <li><a class:list={["block rounded-lg px-2 py-1 hover:bg-sand", on && "bg-brand-50 font-semibold text-brand-800"]} href={withParams({ min: b.min != null ? String(b.min) : null, max: b.max != null ? String(b.max) : null })}>{b.label}</a></li>;
                 })}
               </ul>
               <form method="get" action="/sarees" class="mt-2 flex items-center gap-1">

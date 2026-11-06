@@ -131,12 +131,12 @@ export default function TagPicker({ value, onChange, max, label, hint, categorie
           {groups.length === 0 && <p className="text-sm text-muted">No matching tags — create it above.</p>}
         </div>
         {!needle && (
-          <button type="button" className="mt-2 text-xs font-semibold text-maroon-700 underline" onClick={() => setShowAll((s) => !s)}>
+          <button type="button" className="mt-2 text-xs font-semibold text-brand-700 underline" onClick={() => setShowAll((s) => !s)}>
             {showAll ? "Show common tags only" : "Show tags created by other sellers too"}
           </button>
         )}
       </div>
-      {err && <p className="mt-2 text-xs text-maroon-700">{err}</p>}
+      {err && <p className="mt-2 text-xs text-brand-700">{err}</p>}
     </div>
   );
 }

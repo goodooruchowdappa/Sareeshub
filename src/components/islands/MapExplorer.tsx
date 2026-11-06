@@ -178,7 +178,7 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["has", "point_count"],
           paint: {
-            "circle-color": "#861a3a",
+            "circle-color": "#2f8045",
             "circle-opacity": 0.9,
             "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 32],
             "circle-stroke-width": 3,
@@ -191,7 +191,7 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["has", "point_count"],
           layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 13, "text-font": ["Noto Sans Bold"] },
-          paint: { "text-color": "#fffaf2" },
+          paint: { "text-color": "#f7fbf5" },
         });
         map.addLayer({
           id: "shop-points",
@@ -199,7 +199,7 @@ export default function MapExplorer() {
           source: "shops",
           filter: ["!", ["has", "point_count"]],
           paint: {
-            "circle-color": ["case", ["==", ["get", "featured"], 1], "#d4a62a", "#861a3a"],
+            "circle-color": ["case", ["==", ["get", "featured"], 1], "#d4a62a", "#2f8045"],
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 6, 14, 10],
             "circle-stroke-width": 2.5,
             "circle-stroke-color": "#ffffff",
@@ -219,7 +219,7 @@ export default function MapExplorer() {
           minzoom: 12.5,
           filter: ["!", ["has", "point_count"]],
           layout: { "text-field": ["get", "name"], "text-size": 12, "text-offset": [0, 1.3], "text-anchor": "top", "text-font": ["Noto Sans Bold"], "text-optional": true },
-          paint: { "text-color": "#43091c", "text-halo-color": "#fff", "text-halo-width": 1.5 },
+          paint: { "text-color": "#1a4d29", "text-halo-color": "#fff", "text-halo-width": 1.5 },
         });
 
         map.on("click", "clusters", async (e) => {
@@ -375,7 +375,7 @@ export default function MapExplorer() {
             </button>
           </div>
           {(filters.q || filters.kind || filters.tag) && (
-            <button className="text-xs font-semibold text-maroon-700 underline" onClick={() => setFilters({ q: "", kind: "", tag: "" })}>
+            <button className="text-xs font-semibold text-brand-700 underline" onClick={() => setFilters({ q: "", kind: "", tag: "" })}>
               Clear filters
             </button>
           )}
@@ -391,7 +391,7 @@ export default function MapExplorer() {
           </button>
         </div>
         {locMsg && <p className="mx-3 mb-2 rounded-lg bg-zari-100 px-3 py-2 text-xs text-zari-700">{locMsg}</p>}
-        {error && <p className="mx-3 mb-2 rounded-lg bg-maroon-50 px-3 py-2 text-xs text-maroon-800">{error}</p>}
+        {error && <p className="mx-3 mb-2 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-800">{error}</p>}
 
         <ul className="flex-1 space-y-2 overflow-y-auto px-3 pb-24 md:pb-4">
           {!loading && shops.length === 0 && (
@@ -404,14 +404,14 @@ export default function MapExplorer() {
           {shops.map((s) => (
             <li key={s.id} id={`shop-${s.id}`}>
               <div
-                className={`card flex gap-3 p-2.5 transition ${selected === s.id ? "border-maroon-500 ring-2 ring-maroon-100" : ""}`}
+                className={`card flex gap-3 p-2.5 transition ${selected === s.id ? "border-brand-500 ring-2 ring-brand-100" : ""}`}
               >
                 <button onClick={() => focusShop(s)} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-sand" aria-label={`Show ${s.name} on map`}>
                   {s.cover ? <img src={mediaUrl(s.cover, "thumb")!} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="border-pattern block h-full w-full opacity-70" />}
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <a href={`/shops/${s.slug}`} className="truncate font-semibold leading-tight hover:text-maroon-700">
+                    <a href={`/shops/${s.slug}`} className="truncate font-semibold leading-tight hover:text-brand-700">
                       {s.name}
                     </a>
                     {s.distance_km != null && <span className="shrink-0 text-xs text-muted">{formatKm(s.distance_km)}</span>}
@@ -484,10 +484,10 @@ function popupHtml(s: ShopCard) {
     ${img ? `<img src="${img}" alt="" style="width:100%;height:110px;object-fit:cover;border-radius:14px 14px 0 0" />` : ""}
     <div style="padding:10px 12px 12px">
       <div style="font-size:11px;font-weight:600;color:#8a6410;text-transform:uppercase;letter-spacing:.04em">${esc(kindLabel(s.kind))}</div>
-      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;font-family:Georgia,serif;font-size:17px;line-height:1.2;color:#2b1820;margin-top:2px">${esc(s.name)}</a>
-      <div style="font-size:12px;color:#74606a;margin-top:2px">${esc(placeLine(s))}${s.distance_km != null ? ` · ${formatKm(s.distance_km)}` : ""}</div>
+      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;font-family:Georgia,serif;font-size:17px;line-height:1.2;color:#1c2a20;margin-top:2px">${esc(s.name)}</a>
+      <div style="font-size:12px;color:#5d6e62;margin-top:2px">${esc(placeLine(s))}${s.distance_km != null ? ` · ${formatKm(s.distance_km)}` : ""}</div>
       <div style="font-size:12px;margin-top:4px">${s.rating_count ? `★ ${Number(s.rating_avg).toFixed(1)} (${s.rating_count})` : "New listing"}</div>
-      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;margin-top:8px;text-align:center;background:#861a3a;color:#fff;border-radius:10px;padding:7px;font-size:13px;font-weight:600">View shop & sarees</a>
+      <a href="/shops/${encodeURIComponent(s.slug)}" style="display:block;margin-top:8px;text-align:center;background:#2f8045;color:#fff;border-radius:10px;padding:7px;font-size:13px;font-weight:600">View shop & sarees</a>
     </div>`;
 }
 

@@ -56,7 +56,7 @@ const year = new Date().getFullYear();
               href={n.href}
               class:list={[
                 "rounded-lg px-3 py-2 text-sm font-medium hover:bg-sand",
-                path.startsWith(n.href) && "bg-sand text-maroon-800",
+                path.startsWith(n.href) && "bg-sand text-brand-800",
               ]}
               aria-current={path.startsWith(n.href) ? "page" : undefined}
             >
@@ -76,7 +76,7 @@ const year = new Date().getFullYear();
             </summary>
             <div class="card absolute right-0 z-[60] mt-2 w-56 p-1">
               {nav.map((n) => <a href={n.href} class="block rounded-lg px-3 py-2 text-sm hover:bg-sand">{n.label}</a>)}
-              <a href="/seller/register" class="block rounded-lg px-3 py-2 text-sm font-semibold text-maroon-700 hover:bg-sand">Register your shop</a>
+              <a href="/seller/register" class="block rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-sand">Register your shop</a>
             </div>
           </details>
         </div>

@@ -82,7 +82,7 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
               <>
                 <p>
                   Your review: <strong className="text-zari-600">{"★".repeat(mine.rating)}</strong>
-                  {mine.hidden && <span className="ml-1 text-maroon-700">(hidden by moderators)</span>}
+                  {mine.hidden && <span className="ml-1 text-brand-700">(hidden by moderators)</span>}
                 </p>
                 {mine.comment && <p className="mt-1 whitespace-pre-line text-muted">“{mine.comment}”</p>}
               </>
@@ -140,7 +140,7 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
           </div>
         </form>
       )}
-      {msg && <p className={`mt-3 text-sm ${msg.ok ? "text-leaf" : "text-maroon-700"}`} role="status">{msg.text}</p>}
+      {msg && <p className={`mt-3 text-sm ${msg.ok ? "text-leaf" : "text-brand-700"}`} role="status">{msg.text}</p>}
     </div>
   );
 }

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  /* "Kanjivaram" palette: kumkum red, temple-gold zari, peacock blue-green, ivory silk */
-  --color-maroon-50: #fdf2f4;
-  --color-maroon-100: #fae0e6;
-  --color-maroon-200: #f2b9c7;
-  --color-maroon-500: #b8274e;
-  --color-maroon-600: #9e1f43;
-  --color-maroon-700: #861a3a;
-  --color-maroon-800: #66132c;
-  --color-maroon-900: #43091c;
+  /* Light-green palette: leaf green brand, temple-gold zari accent, mint-tinted background */
+  --color-brand-50: #f0f9f1;
+  --color-brand-100: #dcf1df;
+  --color-brand-200: #b9e2c0;
+  --color-brand-500: #4cae63;
+  --color-brand-600: #3a9a52;
+  --color-brand-700: #2f8045;
+  --color-brand-800: #2f8045;
+  --color-brand-900: #1a4d29;
   --color-zari-100: #fcf2d8;
   --color-zari-300: #f0cf74;
   --color-zari-500: #d4a62a;
@@ -18,11 +18,11 @@
   --color-peacock-50: #e4f3f2;
   --color-peacock-500: #0f7c78;
   --color-peacock-700: #0b5654;
-  --color-cream: #fffaf2;
-  --color-sand: #f7ecdb;
-  --color-line: #ecdcc3;
-  --color-ink: #2b1820;
-  --color-muted: #74606a;
+  --color-cream: #f7fbf5;
+  --color-sand: #eaf4e6;
+  --color-line: #d6e7d1;
+  --color-ink: #1c2a20;
+  --color-muted: #5d6e62;
   --color-leaf: #0f6e64;
   --color-leaf-50: #e4f3f0;
 
@@ -30,7 +30,7 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
     sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(67 9 28 / 0.06), 0 10px 28px -14px rgb(67 9 28 / 0.22);
+  --shadow-card: 0 1px 2px rgb(19 59 32 / 0.06), 0 10px 28px -14px rgb(19 59 32 / 0.22);
 }
 
 @layer base {
@@ -61,13 +61,13 @@
       disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-    @apply btn bg-gradient-to-b from-maroon-600 to-maroon-700 text-white shadow-sm shadow-maroon-900/20 hover:from-maroon-700 hover:to-maroon-800;
+    @apply btn bg-gradient-to-b from-brand-600 to-brand-700 text-white shadow-sm shadow-brand-900/20 hover:from-brand-700 hover:to-brand-800;
 }
 @utility btn-gold {
-    @apply btn bg-gradient-to-b from-zari-300 to-zari-500 text-maroon-900 shadow-sm shadow-zari-700/20 hover:from-zari-500 hover:to-zari-600;
+    @apply btn bg-gradient-to-b from-zari-300 to-zari-500 text-brand-900 shadow-sm shadow-zari-700/20 hover:from-zari-500 hover:to-zari-600;
 }
 @utility btn-outline {
-    @apply btn border border-line bg-white text-ink hover:border-maroon-200 hover:bg-maroon-50;
+    @apply btn border border-line bg-white text-ink hover:border-brand-200 hover:bg-brand-50;
 }
 @utility btn-ghost {
     @apply btn text-ink hover:bg-sand;
@@ -80,14 +80,14 @@
 }
 @utility chip {
     @apply inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium
-      text-ink transition hover:border-maroon-200 hover:bg-maroon-50;
+      text-ink transition hover:border-brand-200 hover:bg-brand-50;
 }
 @utility chip-active {
-    @apply border-maroon-700 bg-maroon-700 text-white hover:bg-maroon-800;
+    @apply border-brand-700 bg-brand-700 text-white hover:bg-brand-800;
 }
 @utility input {
     @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition
-      placeholder:text-muted/70 focus:border-maroon-500 focus:ring-2 focus:ring-maroon-100;
+      placeholder:text-muted/70 focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
 }
 @utility label {
     @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-muted;
@@ -104,9 +104,9 @@
   .border-pattern {
     background-image: repeating-linear-gradient(
       90deg,
-      var(--color-maroon-700) 0 10px,
+      var(--color-brand-700) 0 10px,
       var(--color-zari-500) 10px 14px,
-      var(--color-maroon-700) 14px 24px,
+      var(--color-brand-700) 14px 24px,
       var(--color-zari-300) 24px 26px
     );
   }
