@@ -1,0 +1,17 @@
+---
+export const prerender = true;
+import Prose from "../layouts/Prose.astro";
+import { PUBLIC_CONTACT_EMAIL } from "astro:env/client";
+---
+<Prose title="Refund & Cancellation Policy" description="Refunds and cancellations for Sarees Hub seller plans." path="/refund-policy" updated="7 November 2026">
+  <p>This policy covers payments sellers make for Sarees Hub plans. Sarees Hub does not sell sarees; purchases from shops are between you and the seller.</p>
+  <h2>Cancellations</h2>
+  <p>Plans are one-time prepaid payments and never auto-renew, so there is nothing to cancel. When a plan ends, your shop moves to the Free plan and stays listed.</p>
+  <h2>Refunds</h2>
+  <ul>
+    <li>If you were charged but your plan was not activated, or you were charged twice, we refund the extra payment in full.</li>
+    <li>If you ask within 7 days of purchase and your listing hasn't been featured yet, we refund the full amount.</li>
+    <li>If your listing is removed by us for breaking our terms, no refund is due.</li>
+  </ul>
+  <p>Approved refunds are sent to the original payment method within 5–7 working days. Email <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a> with your payment ID (shown in Seller dashboard → Plan & billing).</p>
+</Prose>

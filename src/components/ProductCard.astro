@@ -1,0 +1,24 @@
+---
+import { discountPct, formatKm, mediaUrl, rupees } from "../lib/format";
+import type { ProductCard } from "../lib/types";
+export interface Props { product: ProductCard; eager?: boolean; showShop?: boolean }
+const { product: p, eager = false, showShop = true } = Astro.props;
+const img = mediaUrl(p.image, "thumb");
+const off = discountPct(p.price_inr, p.mrp_inr);
+---
+<a href={`/sarees/${p.slug}`} class="group flex flex-col">
+  <div class="relative aspect-[3/4] overflow-hidden rounded-2xl bg-sand">
+    {img && <img src={img} alt={p.title} loading={eager ? "eager" : "lazy"} decoding="async" width="360" height="480" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]" />}
+    {!p.in_stock && <span class="badge absolute left-2 top-2 bg-ink/80 text-white">Out of stock</span>}
+    {off >= 5 && p.in_stock && <span class="badge absolute left-2 top-2 bg-leaf text-white">{off}% off</span>}
+    {p.distance_km != null && <span class="badge absolute right-2 top-2 bg-white/95 text-ink">{formatKm(p.distance_km)}</span>}
+  </div>
+  <div class="mt-2 space-y-0.5 px-0.5">
+    <h3 class="line-clamp-2 text-sm font-medium leading-snug text-ink group-hover:text-brand-700">{p.title}</h3>
+    <p class="text-sm">
+      <span class="font-semibold text-ink">{rupees(p.price_inr)}</span>
+      {p.mrp_inr && p.price_inr && p.mrp_inr > p.price_inr && <span class="ml-1 text-xs text-muted line-through">{rupees(p.mrp_inr)}</span>}
+    </p>
+    {showShop && <p class="truncate text-xs text-muted">{p.shop.name} · {p.shop.city}</p>}
+  </div>
+</a>

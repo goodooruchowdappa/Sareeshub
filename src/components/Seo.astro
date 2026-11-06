@@ -1,0 +1,39 @@
+---
+import { PUBLIC_SITE_URL } from "astro:env/client";
+import { SITE } from "../lib/config";
+
+export interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+  image?: string | null;
+  imageAlt?: string;
+  type?: "website" | "article" | "product" | "profile";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+const { title, description = SITE.description, path, image, imageAlt, type = "website", noindex = false, jsonLd = [] } =
+  Astro.props;
+const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
+const canonical = new URL(path ?? Astro.url.pathname, PUBLIC_SITE_URL).toString();
+const ogImage = image ? new URL(image, PUBLIC_SITE_URL).toString() : new URL("/og-default.png", PUBLIC_SITE_URL).toString();
+const desc = description.length > 160 ? `${description.slice(0, 157).trimEnd()}…` : description;
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={desc} />
+<link rel="canonical" href={canonical} />
+{noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow, max-image-preview:large" />}
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content={SITE.locale} />
+<meta property="og:type" content={type === "product" ? "product" : type === "profile" ? "profile" : "website"} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={desc} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={imageAlt ?? title} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={desc} />
+<meta name="twitter:image" content={ogImage} />
+{jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d).replace(/</g, "\\u003c")} />)}

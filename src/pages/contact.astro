@@ -1,0 +1,22 @@
+---
+export const prerender = true;
+import Prose from "../layouts/Prose.astro";
+import { PUBLIC_BUSINESS_ADDRESS, PUBLIC_BUSINESS_NAME, PUBLIC_CONTACT_EMAIL, PUBLIC_CONTACT_PHONE } from "astro:env/client";
+---
+<Prose title="Contact us" description="Get in touch with the Sarees Hub team for listing help, payments or to report a listing." path="/contact">
+  <p>We usually reply within one working day.</p>
+  <ul>
+    <li>Email: <a id="mail" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a></li>
+    {PUBLIC_CONTACT_PHONE && <li>Phone / WhatsApp: <a href={`tel:${PUBLIC_CONTACT_PHONE.replace(/[^\d+]/g, "")}`}>{PUBLIC_CONTACT_PHONE}</a></li>}
+    <li>Business: {PUBLIC_BUSINESS_NAME}, {PUBLIC_BUSINESS_ADDRESS}</li>
+  </ul>
+  <h2>Report a listing</h2>
+  <p>If a shop is closed, has moved, or a listing looks wrong or abusive, email us with the shop link and we'll check it.</p>
+  <h2>Sellers</h2>
+  <p>For help with registration, approval, plans or payments, include your shop name and the email you signed in with.</p>
+</Prose>
+<script>
+  const r = new URLSearchParams(location.search).get("report");
+  const a = document.getElementById("mail") as HTMLAnchorElement | null;
+  if (r && a) a.href = `${a.href}?subject=${encodeURIComponent(`Report listing: ${r}`)}&body=${encodeURIComponent(`${location.origin}/shops/${r}\n\nWhat's wrong:\n`)}`;
+</script>

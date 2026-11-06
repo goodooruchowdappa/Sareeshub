@@ -1,0 +1,7 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SellerApp from "../../components/islands/SellerApp";
+---
+<Layout title="Seller dashboard" noindex hideFooter>
+  <section class="container-x py-6"><SellerApp client:only="react" /></section>
+</Layout>

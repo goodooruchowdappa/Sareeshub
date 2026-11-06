@@ -1,0 +1,134 @@
+---
+import "../styles/global.css";
+import Seo from "../components/Seo.astro";
+import Logo from "../components/Logo.astro";
+import AccountMenu from "../components/islands/AccountMenu";
+import { SITE } from "../lib/config";
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_SUPABASE_URL } from "astro:env/client";
+
+export interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+  image?: string | null;
+  imageAlt?: string;
+  type?: "website" | "article" | "product" | "profile";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+  /** Full-height app layout (map, dashboards): no footer, body doesn't scroll. */
+  app?: boolean;
+  hideFooter?: boolean;
+}
+const { app = false, hideFooter = false, ...seo } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: "/map", label: "Explore map" },
+  { href: "/sarees", label: "Sarees" },
+  { href: "/sell", label: "Sell on Sarees Hub" },
+];
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <Seo {...seo} />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href={PUBLIC_SUPABASE_URL} crossorigin />
+    <slot name="head" />
+  </head>
+  <body class:list={[app ? "flex h-dvh flex-col overflow-hidden" : "min-h-dvh flex flex-col"]}>
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
+    <div class="border-pattern h-1.5 w-full" aria-hidden="true"></div>
+    <header class="sticky top-0 z-50 border-b border-line bg-cream/95 backdrop-blur supports-[backdrop-filter]:bg-cream/80">
+      <div class:list={["flex h-16 items-center gap-3", app ? "px-3 sm:px-5" : "container-x"]}>
+        <a href="/" aria-label="Sarees Hub home" class="shrink-0"><Logo /></a>
+        <nav class="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
+          {nav.map((n) => (
+            <a
+              href={n.href}
+              class:list={[
+                "rounded-lg px-3 py-2 text-sm font-medium hover:bg-sand",
+                path.startsWith(n.href) && "bg-sand text-brand-800",
+              ]}
+              aria-current={path.startsWith(n.href) ? "page" : undefined}
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
+        <form action="/sarees" method="get" role="search" class="ml-auto hidden max-w-xs flex-1 lg:block">
+          <label class="sr-only" for="hdr-q">Search sarees</label>
+          <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !py-2" />
+        </form>
+        <div class="ml-auto flex items-center gap-2 lg:ml-2">
+          <AccountMenu client:idle />
+          <details class="relative md:hidden">
+            <summary class="btn-ghost !p-2 list-none cursor-pointer" aria-label="Menu">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </summary>
+            <div class="card absolute right-0 z-[60] mt-2 w-56 p-1">
+              {nav.map((n) => <a href={n.href} class="block rounded-lg px-3 py-2 text-sm hover:bg-sand">{n.label}</a>)}
+              <a href="/seller/register" class="block rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-sand">Register your shop</a>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class:list={[app ? "relative min-h-0 flex-1" : "flex-1"]}>
+      <slot />
+    </main>
+
+    {!app && !hideFooter && (
+      <footer class="mt-16 border-t border-line bg-sand/60">
+        <div class="container-x grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <Logo />
+            <p class="mt-3 max-w-xs text-sm text-muted">{SITE.tagline}. Talk to sellers directly — no middlemen, no commission.</p>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-muted">For buyers</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li><a class="hover:underline" href="/map">Saree shops near me</a></li>
+              <li><a class="hover:underline" href="/map?kind=weaver">Handloom weavers</a></li>
+              <li><a class="hover:underline" href="/collections/pure-pattu">Pure pattu sarees</a></li>
+              <li><a class="hover:underline" href="/collections/kanchipuram">Kanchipuram sarees</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-muted">For sellers</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li><a class="hover:underline" href="/sell">Why list with us</a></li>
+              <li><a class="hover:underline" href="/seller/register">Register your shop — free</a></li>
+              <li><a class="hover:underline" href="/sell#plans">Plans & pricing</a></li>
+              <li><a class="hover:underline" href="/seller">Seller dashboard</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-muted">Company</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              <li><a class="hover:underline" href="/about">About</a></li>
+              <li><a class="hover:underline" href="/contact">Contact</a></li>
+              <li><a class="hover:underline" href="/terms">Terms</a> · <a class="hover:underline" href="/privacy">Privacy</a></li>
+              <li><a class="hover:underline" href="/refund-policy">Refunds</a> · <a class="hover:underline" href="/shipping-policy">Delivery</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-line">
+          <div class="container-x flex flex-col gap-2 py-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+            <p>© {year} Sarees Hub. Map data © OpenStreetMap contributors.</p>
+            <p><a class="hover:underline" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a></p>
+          </div>
+        </div>
+      </footer>
+    )}
+  </body>
+</html>

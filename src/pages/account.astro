@@ -1,0 +1,10 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AccountPage from "../components/islands/AccountPage";
+---
+<Layout title="Your account" noindex>
+  <section class="container-x py-8">
+    <h1 class="text-3xl">Your account</h1>
+    <div class="mt-6"><AccountPage client:only="react" /></div>
+  </section>
+</Layout>

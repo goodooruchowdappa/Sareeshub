@@ -1,0 +1,17 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MapExplorer from "../components/islands/MapExplorer";
+import { SHOP_KINDS } from "../lib/config";
+const kind = Astro.url.searchParams.get("kind");
+const label = SHOP_KINDS.find((k) => k.value === kind)?.plural ?? "Saree shops & weavers";
+---
+<Layout
+  title={`${label} near you — map`}
+  description="Explore saree shops, handloom weavers, wholesalers and showrooms on a live map. Filter by pure pattu, Kanchipuram, Banarasi and more. Call, WhatsApp or get directions."
+  path="/map"
+  app
+>
+  <h1 class="sr-only">{label} near you</h1>
+  <MapExplorer client:only="react" />
+  <noscript><p class="p-6">The map needs JavaScript. You can still <a class="underline" href="/sarees">browse sarees</a>.</p></noscript>
+</Layout>

@@ -1,0 +1,7 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginCard from "../components/islands/LoginCard";
+---
+<Layout title="Sign in" noindex>
+  <section class="container-x py-16"><LoginCard client:only="react" /></section>
+</Layout>

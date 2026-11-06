@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+Astro.response.status = 404;
+---
+<Layout title="Page not found" noindex>
+  <section class="container-x py-24 text-center">
+    <p class="font-display text-6xl text-zari-500">404</p>
+    <h1 class="mt-2 text-3xl">We couldn't find that page</h1>
+    <p class="mx-auto mt-2 max-w-md text-muted">The shop or saree may have been removed. Try searching, or explore the map.</p>
+    <div class="mt-6 flex justify-center gap-2"><a class="btn-primary" href="/map">Open the map</a><a class="btn-outline" href="/sarees">Browse sarees</a></div>
+  </section>
+</Layout>

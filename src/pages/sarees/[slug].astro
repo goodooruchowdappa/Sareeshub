@@ -1,0 +1,175 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Stars from "../../components/Stars.astro";
+import ProductCardC from "../../components/ProductCard.astro";
+import ServiceDown from "../../components/ServiceDown.astro";
+import { load } from "../../lib/server";
+import { kindLabel } from "../../lib/config";
+import { absoluteUrl, directionsLink, discountPct, mediaUrl, placeLine, rupees, telLink, truncate, whatsappLink } from "../../lib/format";
+import type { ProductDetail } from "../../lib/types";
+
+const { slug } = Astro.params;
+const { data, error } = await load<ProductDetail | null>("get_product", { p_slug: slug });
+if (error) Astro.response.status = 503;
+else if (!data) return Astro.rewrite("/404");
+
+const p = data?.product;
+const s = data?.shop;
+const url = p ? absoluteUrl(`/sarees/${p.slug}`) : "";
+const off = p ? discountPct(p.price_inr, p.mrp_inr) : 0;
+const facts = p
+  ? [
+      ...p.tags.filter((t) => t.category === "fabric").map((t) => ["Fabric", t.name]),
+      ...p.tags.filter((t) => t.category === "weave").map((t) => ["Weave", t.name]),
+      ...p.tags.filter((t) => t.category === "work").map((t) => ["Work", t.name]),
+      ...p.tags.filter((t) => t.category === "occasion").map((t) => ["Occasion", t.name]),
+      p.colors.length ? ["Colours", p.colors.join(", ")] : null,
+      p.length_m ? ["Length", `${p.length_m} m`] : null,
+      ["Blouse piece", p.blouse_included ? "Included" : "Not included"],
+    ].filter(Boolean) as [string, string][]
+  : [];
+const description = p
+  ? truncate(
+      `${p.title}${p.price_inr ? ` for ${rupees(p.price_inr)}` : ""} at ${s!.name}, ${s!.city}. ${p.description ?? p.tags.map((t) => t.name).join(", ")}`,
+      160,
+    )
+  : "";
+const waText = p ? `Hi ${s!.name}, I saw "${p.title}"${p.price_inr ? ` (${rupees(p.price_inr)})` : ""} on Sarees Hub: ${url}. Is it available?` : "";
+const jsonLd = p
+  ? [
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: p.title,
+        description: p.description ?? description,
+        image: p.images.map((i) => mediaUrl(i)),
+        sku: p.id,
+        category: "Apparel & Accessories > Clothing > Traditional & Ceremonial Clothing > Saris & Lehengas",
+        color: p.colors.join(", ") || undefined,
+        material: p.tags.filter((t) => t.category === "fabric").map((t) => t.name).join(", ") || undefined,
+        brand: { "@type": "Brand", name: s!.name },
+        ...(p.price_inr
+          ? {
+              offers: {
+                "@type": "Offer",
+                url,
+                priceCurrency: "INR",
+                price: p.price_inr,
+                availability: p.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                itemCondition: "https://schema.org/NewCondition",
+                seller: { "@type": "Organization", name: s!.name, url: absoluteUrl(`/shops/${s!.slug}`) },
+              },
+            }
+          : {}),
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Sarees", item: absoluteUrl("/sarees") },
+          { "@type": "ListItem", position: 2, name: s!.name, item: absoluteUrl(`/shops/${s!.slug}`) },
+          { "@type": "ListItem", position: 3, name: p.title, item: url },
+        ],
+      },
+    ]
+  : [];
+---
+
+{!p || !s ? (
+  <Layout title="Saree unavailable" noindex><ServiceDown /></Layout>
+) : (
+<Layout title={`${p.title} — ${s.name}, ${s.city}`} description={description} path={`/sarees/${p.slug}`} image={mediaUrl(p.images[0])} imageAlt={p.title} type="product" jsonLd={jsonLd}>
+  <div class="container-x pt-4">
+    <nav aria-label="Breadcrumb" class="text-xs text-muted">
+      <a href="/sarees" class="hover:underline">Sarees</a> › <a href={`/shops/${s.slug}`} class="hover:underline">{s.name}</a> › <span class="text-ink">{truncate(p.title, 50)}</span>
+    </nav>
+  </div>
+  <section class="container-x mt-4 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-shop-actions data-shop-id={s.id}>
+    <div>
+      <div class="relative overflow-hidden rounded-2xl bg-sand">
+        <img id="main-img" src={mediaUrl(p.images[0])} alt={p.title} class="aspect-[3/4] w-full object-cover" fetchpriority="high" />
+        {!p.in_stock && <span class="badge absolute left-3 top-3 bg-ink/80 text-white">Out of stock</span>}
+      </div>
+      {p.images.length > 1 && (
+        <div class="mt-2 grid grid-cols-6 gap-2">
+          {p.images.map((img, i) => (
+            <button type="button" data-img={mediaUrl(img)} class="overflow-hidden rounded-lg border-2 border-transparent bg-sand aria-[current=true]:border-brand-700" aria-current={i === 0 ? "true" : "false"} aria-label={`Photo ${i + 1}`}>
+              <img src={mediaUrl(img, "thumb")} alt="" class="aspect-[3/4] w-full object-cover" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div>
+      <a href={`/shops/${s.slug}`} class="text-sm font-semibold uppercase tracking-wide text-zari-700 hover:underline">{s.name}</a>
+      <h1 class="mt-1 text-3xl leading-tight sm:text-4xl">{p.title}</h1>
+      <div class="mt-4 flex items-baseline gap-3">
+        <span class="font-display text-4xl text-brand-800">{rupees(p.price_inr)}</span>
+        {p.mrp_inr && p.price_inr && p.mrp_inr > p.price_inr && <span class="text-lg text-muted line-through">{rupees(p.mrp_inr)}</span>}
+        {off >= 5 && <span class="badge bg-leaf-50 text-leaf">{off}% off</span>}
+      </div>
+      <p class="mt-1 text-xs text-muted">Price set by the seller. Confirm availability and final price with them.</p>
+
+      <div class="mt-5 grid gap-2 sm:grid-cols-2">
+        <a href={whatsappLink(s.whatsapp || s.phone, waText)} target="_blank" rel="noopener" class="btn-whatsapp !py-3" data-track="whatsapp">Ask on WhatsApp</a>
+        <a href={telLink(s.phone)} class="btn-primary !py-3" data-track="call">Call the shop</a>
+      </div>
+
+      {facts.length > 0 && (
+        <dl class="mt-6 divide-y divide-line rounded-2xl border border-line bg-white">
+          {facts.map(([k, v]) => <div class="grid grid-cols-[120px_1fr] gap-2 px-4 py-2.5 text-sm"><dt class="text-muted">{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+      )}
+
+      {p.description && <p class="mt-6 whitespace-pre-line leading-relaxed">{p.description}</p>}
+
+      {p.tags.length > 0 && (
+        <div class="mt-5 flex flex-wrap gap-2">
+          {p.tags.map((t) => <a class="chip" href={`/collections/${t.slug}`}>{t.name}</a>)}
+        </div>
+      )}
+
+      <a href={`/shops/${s.slug}`} class="card mt-6 flex items-center gap-4 p-4 hover:border-brand-200">
+        {s.cover ? <img src={mediaUrl(s.cover, "thumb")} alt="" class="h-16 w-16 rounded-xl object-cover" loading="lazy" /> : <span class="border-pattern h-16 w-16 rounded-xl"></span>}
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wide text-zari-700">{kindLabel(s.kind)}</p>
+          <p class="truncate font-display text-lg">{s.name}</p>
+          <p class="truncate text-sm text-muted">{placeLine(s)}</p>
+          <Stars rating={s.rating_avg} count={s.rating_count} />
+        </div>
+      </a>
+      <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" class="btn-outline mt-2 w-full" data-track="directions">Directions to the shop</a>
+    </div>
+  </section>
+
+  {data.more_from_shop.length > 0 && (
+    <section class="container-x mt-14">
+      <h2 class="text-2xl">More from {s.name}</h2>
+      <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-6">{data.more_from_shop.slice(0, 6).map((x) => <ProductCardC product={x} showShop={false} />)}</div>
+    </section>
+  )}
+  {data.similar.length > 0 && (
+    <section class="container-x mt-14">
+      <h2 class="text-2xl">Similar sarees from other sellers</h2>
+      <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-6">{data.similar.slice(0, 6).map((x) => <ProductCardC product={x} />)}</div>
+    </section>
+  )}
+</Layout>
+)}
+
+<script>
+  import { trackShop } from "../../lib/track";
+  const main = document.getElementById("main-img") as HTMLImageElement | null;
+  document.querySelectorAll<HTMLButtonElement>("[data-img]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (main) main.src = b.dataset.img!;
+      document.querySelectorAll("[data-img]").forEach((x) => x.setAttribute("aria-current", String(x === b)));
+    }),
+  );
+  const shopId = document.querySelector<HTMLElement>("[data-shop-actions]")?.dataset.shopId;
+  if (shopId)
+    document.querySelectorAll<HTMLElement>("[data-track]").forEach((el) =>
+      el.addEventListener("click", () => trackShop(shopId, el.dataset.track as "call")),
+    );
+</script>
