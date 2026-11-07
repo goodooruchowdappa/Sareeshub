@@ -288,6 +288,7 @@ export default function MapExplorer() {
     popupRef.current?.remove();
     const s = shops.find((x) => x.id === selected);
     if (!s) return;
+    if (window.matchMedia("(max-width: 767px)").matches) return; // phones get a bottom card instead
     const el = document.createElement("div");
     el.className = "w-60";
     el.innerHTML = popupHtml(s);
@@ -502,14 +503,67 @@ export default function MapExplorer() {
         {loading && mapReady && (
           <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full bg-white/95 px-3 py-1 text-xs shadow">Searching this area…</div>
         )}
-        <div className="absolute left-3 top-3 z-10 md:hidden">
-          <button className="btn-gold !py-2 shadow" onClick={() => locate()}>📍 Near me</button>
+        <div className="absolute inset-x-0 top-0 z-10 space-y-2 p-3 md:hidden">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-white px-4 py-2.5 text-left text-sm text-muted shadow-md"
+              onClick={() => {
+                setSheet("list");
+                setTimeout(() => document.querySelector<HTMLInputElement>("aside input[type=search]")?.focus(), 50);
+              }}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              <span className="truncate">{filters.q || "Search shops, sarees or a place"}</span>
+            </button>
+            <button type="button" className="btn-gold !rounded-full !px-3.5 shadow-md" onClick={() => locate()} aria-label="Shops near me">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+            </button>
+          </div>
+          <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3" style={{ scrollbarWidth: "none" }}>
+            {SHOP_KINDS.map((k) => (
+              <button
+                key={k.value}
+                className={`chip shrink-0 shadow-sm ${filters.kind === k.value ? "chip-active" : ""}`}
+                onClick={() => setFilters((f) => ({ ...f, kind: f.kind === k.value ? "" : k.value }))}
+              >
+                {k.plural}
+              </button>
+            ))}
+          </div>
         </div>
+        {(() => {
+          const s = shops.find((x) => x.id === selected);
+          if (!s) return null;
+          return (
+            <div className="absolute inset-x-3 bottom-3 z-20 md:hidden" data-testid="map-card">
+              <div className="card relative flex gap-3 p-3 shadow-xl">
+                <button type="button" className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full text-muted" aria-label="Close" onClick={() => setSelected(null)}>✕</button>
+                <a href={`/shops/${s.slug}`} className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-sand">
+                  {s.cover && <img src={mediaUrl(s.cover, "thumb")!} alt="" className="h-full w-full object-cover" />}
+                </a>
+                <div className="min-w-0 flex-1 pr-6">
+                  <a href={`/shops/${s.slug}`} className="block truncate font-display text-lg leading-tight">{s.name}</a>
+                  <p className="truncate text-xs text-muted">{kindLabel(s.kind)}{s.distance_km != null && ` · ${formatKm(s.distance_km)}`}</p>
+                  <p className="text-xs">{s.rating_count ? `★ ${Number(s.rating_avg).toFixed(1)} (${s.rating_count})` : "New listing"}</p>
+                  <div className="mt-2 flex gap-1.5">
+                    <a href={telLink(s.phone)} className="btn-primary flex-1 !px-2 !py-2 text-xs" onClick={() => trackShop(s.id, "call")}>Call</a>
+                    <a href={whatsappLink(s.whatsapp || s.phone, `Hi ${s.name}, I found you on Sarees Hub.`)} target="_blank" rel="noopener" className="btn-whatsapp flex-1 !px-2 !py-2 text-xs" onClick={() => trackShop(s.id, "whatsapp")}>WhatsApp</a>
+                    <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" className="btn-outline !px-2.5 !py-2" aria-label="Directions" onClick={() => trackShop(s.id, "directions")}>
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         <button
-          className="btn-primary absolute bottom-6 left-1/2 z-10 -translate-x-1/2 shadow-lg md:hidden"
+          className={`btn-primary absolute bottom-6 left-1/2 z-10 -translate-x-1/2 !rounded-full shadow-lg md:hidden ${selected ? "hidden" : ""}`}
           onClick={() => setSheet("list")}
         >
-          ☰ List · {total}
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+          List of {total} {total === 1 ? "place" : "places"}
         </button>
       </div>
     </div>
@@ -616,7 +670,7 @@ function SearchBox({
               🔎 Shops & sarees matching “<strong>{text.trim()}</strong>”
             </button>
           </li>
-          {places.length > 0 && <li className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">Go to place</li>}
+          {places.length > 0 && <li className="px-3 pt-2 text-xs font-semibold text-muted">Go to place</li>}
           {places.map((p, i) => (
             <li key={p.id + i} role="option" aria-selected={active === i + 1}>
               <button type="button" onMouseDown={() => choose(i + 1)} className={`w-full rounded-lg px-3 py-2 text-left hover:bg-sand ${active === i + 1 ? "bg-sand" : ""}`}>

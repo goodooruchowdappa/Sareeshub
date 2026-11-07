@@ -106,7 +106,7 @@ export default function AdminApp() {
           }}
         />
       )}
-      {toast && <div className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg" role="status">{toast}</div>}
+      {toast && <div className="fixed bottom-24 left-1/2 z-[80] md:bottom-5 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg" role="status">{toast}</div>}
     </div>
   );
 }

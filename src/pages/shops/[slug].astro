@@ -98,8 +98,8 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
 >
   <div class="container-x pt-4">
     <nav aria-label="Breadcrumb" class="text-xs text-muted">
-      <a href="/" class="hover:underline">Home</a> ›
-      <a href={`/map?q=${encodeURIComponent(s.city)}`} class="hover:underline">{s.city}</a> ›
+      <a href="/" class="hover:underline">Home</a> <span aria-hidden="true">›</span>
+      <a href={`/map?q=${encodeURIComponent(s.city)}`} class="hover:underline">{s.city}</a> <span aria-hidden="true">›</span>
       <span class="text-ink">{s.name}</span>
     </nav>
   </div>
@@ -154,12 +154,12 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
       </div>
 
       <div class="mt-5 flex flex-wrap gap-2" data-shop-actions data-shop-id={s.id}>
-        <a href={telLink(s.phone)} class="btn-primary" data-track="call">
+        <a href={telLink(s.phone)} class="btn-primary max-md:hidden" data-track="call">
           <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.6a1 1 0 01-.25 1z" /></svg>
           Call {s.phone}
         </a>
         {(s.whatsapp || s.phone) && (
-          <a href={whatsappLink(s.whatsapp || s.phone, waText, s.country_code)} target="_blank" rel="noopener" class="btn-whatsapp" data-track="whatsapp">
+          <a href={whatsappLink(s.whatsapp || s.phone, waText, s.country_code)} target="_blank" rel="noopener" class="btn-whatsapp max-md:hidden" data-track="whatsapp">
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.2-.7-2.7-1.1-4.4-3.9-4.6-4.1-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z" /></svg>
             WhatsApp
           </a>
@@ -299,6 +299,13 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
       </div>
     </section>
   )}
+  <Fragment slot="bottombar">
+    <a href={telLink(s.phone)} class="btn-primary flex-1 !py-3" data-track="call">Call</a>
+    {(s.whatsapp || s.phone) && <a href={whatsappLink(s.whatsapp || s.phone, waText, s.country_code)} target="_blank" rel="noopener" class="btn-whatsapp flex-1 !py-3" data-track="whatsapp">WhatsApp</a>}
+    <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" class="btn-outline !px-3 !py-3" data-track="directions" aria-label="Directions">
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" /><circle cx="12" cy="10" r="2.5" /></svg>
+    </a>
+  </Fragment>
 </Layout>
 )}
 

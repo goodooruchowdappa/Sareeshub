@@ -78,21 +78,21 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
     {result && <p class="mt-1 text-muted">{result.total.toLocaleString("en-IN")} {result.total === 1 ? "saree" : "sarees"}{lat != null && ` within ${radius} km`}</p>}
 
     <form method="get" action="/sarees" class="mt-4 flex flex-wrap items-center gap-2" id="saree-search">
-      <input type="search" name="q" value={q} placeholder="Search sarees, fabric, weave, shop…" class="input basis-full sm:max-w-md sm:flex-1 sm:basis-auto" />
+      <input type="search" name="q" value={q} placeholder="Search sarees, fabric, weave, shop…" class="input min-w-0 flex-1 basis-[calc(100%-6rem)] sm:max-w-md sm:basis-auto" />
+      <button class="btn-primary">Search</button>
       {tags.map((t) => <input type="hidden" name="tag" value={t} />)}
       {min != null && <input type="hidden" name="min" value={min} />}
       {max != null && <input type="hidden" name="max" value={max} />}
       {kind && <input type="hidden" name="kind" value={kind} />}
       {lat != null && <><input type="hidden" name="lat" value={lat} /><input type="hidden" name="lng" value={lng} /><input type="hidden" name="r" value={radius} /></>}
-      <select name="sort" class="input !w-auto" aria-label="Sort by" onchange="this.form.submit()">
+      <select name="sort" class="input min-w-0 flex-1 sm:!w-auto sm:flex-none" aria-label="Sort by" onchange="this.form.submit()">
         {q && <option value="relevance" selected={sort === "relevance"}>Best match</option>}
         <option value="newest" selected={sort === "newest"}>Newest</option>
         <option value="price_asc" selected={sort === "price_asc"}>Price: low to high</option>
         <option value="price_desc" selected={sort === "price_desc"}>Price: high to low</option>
         <option value="nearest" selected={sort === "nearest"}>Nearest to me</option>
       </select>
-      <button class="btn-primary">Search</button>
-      <button type="button" class="btn-outline" data-near>{lat != null ? "Change location" : "📍 Near me"}</button>
+      <button type="button" class="btn-outline flex-1 sm:flex-none" data-near>{lat != null ? "Change location" : "📍 Near me"}</button>
     </form>
 
     {(tags.length > 0 || min != null || max != null || kind || lat != null || inStock) && (
