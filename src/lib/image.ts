@@ -20,7 +20,7 @@ async function encode(bitmap: ImageBitmap, maxSide: number, quality: number): Pr
  * Shrinks a phone photo (often 4–8 MB) to ~150–300 KB WebP plus a small thumbnail,
  * then uploads both to the user's folder. Returns the storage path of the full image.
  */
-export async function uploadPhoto(file: File, folder: "shops" | "sarees"): Promise<string> {
+export async function uploadPhoto(file: File, folder: "shops" | "sarees" | "requests" | "replies"): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Please choose a photo (JPG, PNG or WebP).");
   if (file.size > 25 * 1024 * 1024) throw new Error("That photo is too large. Please pick one under 25 MB.");
   const { data } = await supabase().auth.getSession();

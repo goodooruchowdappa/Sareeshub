@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import MyRequests from "../../components/islands/MyRequests";
+---
+<Layout title="My custom saree requests" noindex>
+  <section class="container-x max-w-4xl py-8">
+    <a href="/account" class="text-sm text-muted hover:text-ink">← Your account</a>
+    <h1 class="mt-2 text-3xl">My custom requests</h1>
+    <div class="mt-6"><MyRequests client:only="react" /></div>
+  </section>
+</Layout>

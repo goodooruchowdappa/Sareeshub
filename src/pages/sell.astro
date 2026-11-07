@@ -8,6 +8,7 @@ const faq = [
   ["How long does approval take?", "Usually within 24 hours. We check that the shop is real and the pin is in the right place. You'll see the status in your dashboard."],
   ["I'm a weaver working from home. Can I register?", "Yes. Choose “Handloom weaver” and drop the pin on your loom or village. You can hide the exact street and only show the area."],
   ["Do buyers pay through Sarees Hub?", "No. Buyers call or WhatsApp you directly and you sell the way you already do. Paid plans are only for extra visibility."],
+  ["What are custom saree requests?", "Buyers near you upload a photo of the saree they want with a budget. You see the request in your dashboard and reply with your own photos and price. The Free plan lets you open 3 requests a month; paid plans are unlimited and get them first."],
   ["Can I cancel a paid plan?", "Plans are prepaid and don't renew automatically. When the period ends your shop simply goes back to the Free plan."],
 ];
 ---
@@ -34,6 +35,8 @@ const faq = [
           ["📞", "Direct leads", "Calls, WhatsApp and directions go straight to you."],
           ["🏷️", "Your catalogue", "Add sarees with price, fabric, weave and occasion tags."],
           ["⭐", "Reviews", "Happy customers build trust. Reply to every review."],
+          ["📸", "Custom orders", "Buyers nearby send the saree they want — reply with photos and price."],
+          ["🚀", "Paid plans first", "Pro sellers get unlimited requests and a head start."],
         ].map(([i, t, d]) => (
           <li class="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"><span class="text-2xl">{i}</span><p class="mt-1 font-semibold">{t}</p><p class="text-sm text-cream/70">{d}</p></li>
         ))}

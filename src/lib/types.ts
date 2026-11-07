@@ -110,6 +110,11 @@ export type Plan = {
   features: string[];
   active: boolean;
   sort_order: number;
+  audience?: "seller" | "buyer";
+  /** Seller plans: custom requests a shop can open per 30 days (null = unlimited, 0 = none). */
+  lead_quota?: number | null;
+  /** Buyer plans: requests allowed per plan period (null = unlimited). */
+  request_quota?: number | null;
 };
 
 export type Me = {
@@ -119,5 +124,71 @@ export type Me = {
   avatar_url: string | null;
   phone: string | null;
   is_admin: boolean;
+  unread?: number;
   shops: { id: string; slug: string; name: string; status: string }[];
 };
+
+export type BuyerStatus = {
+  plan_code: string;
+  plan_name: string;
+  quota: number | null;
+  used: number;
+  remaining: number | null;
+  ends_at: string | null;
+};
+
+export type RequestSummary = {
+  id: string;
+  title: string;
+  status: "open" | "closed" | "hidden" | "expired";
+  city: string;
+  min_price: number | null;
+  max_price: number | null;
+  image: string | null;
+  created_at: string;
+  expires_at: string;
+  needed_by: string | null;
+  responses: number;
+  unseen: number;
+  tags: TagRef[];
+};
+
+export type RequestReply = {
+  id: string;
+  message: string;
+  price_inr: number | null;
+  ready_in_days: number | null;
+  images: string[];
+  status: "sent" | "shortlisted" | "declined";
+  hidden: boolean;
+  created_at: string;
+  updated_at: string;
+  shop: ShopCard & { country_code: string };
+};
+
+export type RequestDetail = {
+  request: {
+    id: string;
+    title: string;
+    description: string | null;
+    min_price: number | null;
+    max_price: number | null;
+    colors: string[];
+    images: string[];
+    quantity: number;
+    needed_by: string | null;
+    city: string;
+    state: string | null;
+    country: string;
+    radius_km: number | null;
+    status: RequestSummary["status"];
+    closed_reason: string | null;
+    response_count: number;
+    created_at: string;
+    expires_at: string;
+    tags: TagRef[];
+  };
+  responses: RequestReply[];
+};
+
+export type Notification = { id: string; kind: string; title: string; body: string | null; link: string | null; read: boolean; created_at: string };

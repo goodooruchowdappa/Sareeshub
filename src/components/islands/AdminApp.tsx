@@ -4,10 +4,10 @@ import ShopForm, { shopToValues, valuesToPayload } from "./ShopForm";
 import { rpc, supabase } from "../../lib/supabase";
 import { loadMe, requireSession } from "../../lib/session";
 import { TAG_CATEGORIES, categoryLabel, kindLabel } from "../../lib/config";
-import { dateIN, mediaUrl, paise, telLink } from "../../lib/format";
-import type { Me, Plan, TagRef } from "../../lib/types";
+import { budgetLabel, dateIN, mediaUrl, paise, telLink, timeAgo } from "../../lib/format";
+import type { Me, Plan, RequestDetail, TagRef } from "../../lib/types";
 
-type Tab = "overview" | "pending" | "changes" | "shops" | "reviews" | "tags" | "plans" | "payments" | "team";
+type Tab = "overview" | "pending" | "changes" | "shops" | "requests" | "reviews" | "tags" | "plans" | "payments" | "team";
 type Overview = Record<string, number>;
 type ShopRow = {
   id: string; slug: string; name: string; kind: string; status: string; city: string; state: string | null; country: string;
@@ -60,6 +60,7 @@ export default function AdminApp() {
     ["pending", "Approvals", ov?.pending],
     ["changes", "Change requests", ov?.changes],
     ["shops", "All shops"],
+    ["requests", "Custom requests", ov?.open_requests],
     ["reviews", "Reviews"],
     ["tags", "Tags"],
     ["plans", "Plans"],
@@ -82,6 +83,7 @@ export default function AdminApp() {
         {tab === "pending" && <ShopList key="p" status="pending" onOpen={setOpenShop} />}
         {tab === "changes" && <ShopList key="c" changes onOpen={setOpenShop} />}
         {tab === "shops" && <ShopList key="a" onOpen={setOpenShop} filterable />}
+        {tab === "requests" && <RequestsPanel flash={flash} />}
         {tab === "reviews" && <ReviewsPanel flash={flash} />}
         {tab === "tags" && <TagsPanel flash={flash} />}
         {tab === "plans" && <PlansPanel flash={flash} />}
@@ -117,6 +119,10 @@ function OverviewPanel({ ov, go }: { ov: Overview | null; go: (t: Tab) => void }
     ["Reviews", ov.reviews, "reviews"],
     ["Users", ov.users, "team"],
     ["Leads sent (30 days)", ov.leads_30d],
+    ["Open custom requests", ov.open_requests, "requests"],
+    ["Requests (30 days)", ov.requests_30d, "requests"],
+    ["Seller replies (30 days)", ov.responses_30d, "requests"],
+    ["Buyers on paid passes", ov.paid_buyers, "payments"],
     ["Rejected", ov.rejected, "shops"],
     ["Suspended", ov.suspended, "shops"],
   ];
@@ -485,7 +491,13 @@ function PlansPanel({ flash }: { flash: (m: string) => void }) {
   const [edit, setEdit] = useState<(Plan & { featuresText: string }) | null>(null);
   const load = useCallback(() => call<(Plan & { active_shops: number })[]>("admin_plans").then(setPlans), []);
   useEffect(() => { load(); }, [load]);
-  const blank: Plan & { featuresText: string } = { code: "", name: "", description: "", price_inr: 0, duration_days: 30, max_products: 50, max_photos: 5, featured: false, priority: 0, features: [], active: true, sort_order: 9, featuresText: "" };
+  const blank: Plan & { featuresText: string } = { code: "", name: "", description: "", price_inr: 0, duration_days: 30, max_products: 50, max_photos: 5, featured: false, priority: 0, features: [], active: true, sort_order: 9, featuresText: "", audience: "seller", lead_quota: null, request_quota: null };
+  const quota = (k: "lead_quota" | "request_quota") => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setEdit((p) => p && { ...p, [k]: e.target.value.trim() === "" ? null : Math.max(0, Number(e.target.value.replace(/\D/g, "")) || 0) });
+  const groups: ["seller" | "buyer", string, string][] = [
+    ["seller", "Seller plans", "Visibility, catalogue size and how many custom requests a shop can open every 30 days."],
+    ["buyer", "Buyer plans (custom requests)", "How many custom saree requests a buyer can send during the plan."],
+  ];
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -503,17 +515,30 @@ function PlansPanel({ flash }: { flash: (m: string) => void }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between"><h1 className="text-2xl">Plans</h1><button className="btn-outline" onClick={() => setEdit(blank)}>+ New plan</button></div>
+      <h1 className="text-2xl">Plans</h1>
       <p className="text-sm text-muted">Prices are in rupees including GST. Changing a price affects new purchases only.</p>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {plans.map((p) => (
-          <div key={p.code} className={`card p-4 ${p.active ? "" : "opacity-60"}`}>
-            <div className="flex items-center justify-between"><p className="font-display text-xl">{p.name}</p><button className="btn-ghost !py-1 text-xs" onClick={() => setEdit({ ...p, featuresText: p.features.join("\n") })}>Edit</button></div>
-            <p className="text-sm">₹{p.price_inr} / {p.duration_days} days · {p.max_products} sarees · {p.max_photos} photos · priority {p.priority}{p.featured ? " · featured" : ""}</p>
-            <p className="text-xs text-muted">code: {p.code} · {p.active_shops} shops on it now{p.active ? "" : " · inactive"}</p>
+      {groups.map(([aud, title, hint]) => (
+        <section key={aud} className="mt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xl">{title}</h2>
+            <button className="btn-ghost text-sm" onClick={() => setEdit({ ...blank, audience: aud, max_products: aud === "buyer" ? 0 : 50, max_photos: aud === "buyer" ? 1 : 5 })}>+ New {aud} plan</button>
           </div>
-        ))}
-      </div>
+          <p className="text-xs text-muted">{hint}</p>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {plans.filter((p) => (p.audience ?? "seller") === aud).map((p) => (
+              <div key={p.code} className={`card p-4 ${p.active ? "" : "opacity-60"}`} data-plan-row={p.code}>
+                <div className="flex items-center justify-between"><p className="font-display text-xl">{p.name}</p><button className="btn-ghost !py-1 text-xs" onClick={() => setEdit({ ...p, featuresText: p.features.join("\n") })}>Edit</button></div>
+                {aud === "seller" ? (
+                  <p className="text-sm">₹{p.price_inr} / {p.duration_days} days · {p.max_products} sarees · {p.max_photos} photos · priority {p.priority}{p.featured ? " · featured" : ""} · requests: <strong>{p.lead_quota == null ? "unlimited" : p.lead_quota === 0 ? "none" : `${p.lead_quota}/month`}</strong></p>
+                ) : (
+                  <p className="text-sm">₹{p.price_inr} / {p.duration_days} days · <strong>{p.request_quota == null ? "unlimited requests" : `${p.request_quota} requests`}</strong> · priority {p.priority}</p>
+                )}
+                <p className="text-xs text-muted">code: {p.code}{aud === "seller" && ` · ${p.active_shops} shops on it now`}{p.active ? "" : " · inactive"}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
       {edit && (
         <form onSubmit={save} className="card mt-5 grid gap-3 p-5 sm:grid-cols-2">
           <div><label className="label">Code (permanent)</label><input className="input" required pattern="[a-z0-9_]{2,30}" disabled={plans.some((p) => p.code === edit.code)} value={edit.code} onChange={(e) => setEdit({ ...edit, code: e.target.value })} /></div>
@@ -521,12 +546,19 @@ function PlansPanel({ flash }: { flash: (m: string) => void }) {
           <div className="sm:col-span-2"><label className="label">Description</label><input className="input" value={edit.description ?? ""} onChange={(e) => setEdit({ ...edit, description: e.target.value })} /></div>
           <div><label className="label">Price ₹ (incl. GST)</label><input className="input" inputMode="numeric" value={edit.price_inr} onChange={num("price_inr")} /></div>
           <div><label className="label">Duration (days)</label><input className="input" inputMode="numeric" value={edit.duration_days} onChange={num("duration_days")} /></div>
-          <div><label className="label">Max sarees</label><input className="input" inputMode="numeric" value={edit.max_products} onChange={num("max_products")} /></div>
-          <div><label className="label">Max shop photos</label><input className="input" inputMode="numeric" value={edit.max_photos} onChange={num("max_photos")} /></div>
+          {edit.audience !== "buyer" ? (
+            <>
+              <div><label className="label">Max sarees</label><input className="input" inputMode="numeric" value={edit.max_products} onChange={num("max_products")} /></div>
+              <div><label className="label">Max shop photos</label><input className="input" inputMode="numeric" value={edit.max_photos} onChange={num("max_photos")} /></div>
+              <div className="sm:col-span-2"><label className="label" htmlFor="pl-lead">Custom requests a shop can open per 30 days</label><input id="pl-lead" className="input" inputMode="numeric" placeholder="Leave empty for unlimited" value={edit.lead_quota ?? ""} onChange={quota("lead_quota")} /><p className="mt-1 text-xs text-muted">Empty = unlimited, notified instantly and gets the head start. 0 = no custom requests. Any number = that many per month, seen after the head start.</p></div>
+            </>
+          ) : (
+            <div className="sm:col-span-2"><label className="label" htmlFor="pl-req">Requests allowed during the plan</label><input id="pl-req" className="input" inputMode="numeric" placeholder="Leave empty for unlimited" value={edit.request_quota ?? ""} onChange={quota("request_quota")} /></div>
+          )}
           <div><label className="label">Ranking priority (higher shows first)</label><input className="input" inputMode="numeric" value={edit.priority} onChange={num("priority")} /></div>
           <div><label className="label">Sort order</label><input className="input" inputMode="numeric" value={edit.sort_order} onChange={num("sort_order")} /></div>
           <div className="sm:col-span-2"><label className="label">Features (one per line)</label><textarea className="input min-h-24" value={edit.featuresText} onChange={(e) => setEdit({ ...edit, featuresText: e.target.value })} /></div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={edit.featured} onChange={(e) => setEdit({ ...edit, featured: e.target.checked })} /> Featured badge & gold pin</label>
+          {edit.audience !== "buyer" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={edit.featured} onChange={(e) => setEdit({ ...edit, featured: e.target.checked })} /> Featured badge & gold pin</label>}
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} /> Available to buy</label>
           <div className="flex gap-2 sm:col-span-2"><button className="btn-primary">Save plan</button><button type="button" className="btn-ghost" onClick={() => setEdit(null)}>Cancel</button></div>
         </form>
@@ -537,7 +569,7 @@ function PlansPanel({ flash }: { flash: (m: string) => void }) {
 
 function PaymentsPanel() {
   const [status, setStatus] = useState("paid");
-  const [res, setRes] = useState<{ total: number; items: { id: string; shop_name: string; shop_slug: string; email: string; plan_code: string; amount_paise: number; status: string; provider: string; razorpay_order_id: string | null; razorpay_payment_id: string | null; method: string | null; note: string | null; error_reason: string | null; created_at: string; paid_at: string | null }[] } | null>(null);
+  const [res, setRes] = useState<{ total: number; items: { id: string; shop_name: string; shop_slug: string | null; email: string; plan_code: string; amount_paise: number; status: string; provider: string; razorpay_order_id: string | null; razorpay_payment_id: string | null; method: string | null; note: string | null; error_reason: string | null; created_at: string; paid_at: string | null }[] } | null>(null);
   useEffect(() => { call<typeof res>("admin_payments", { p_status: status || null, p_limit: 200 }).then(setRes); }, [status]);
   const total = res?.items.filter((p) => p.status === "paid").reduce((a, p) => a + p.amount_paise, 0) ?? 0;
   function csv() {
@@ -562,12 +594,12 @@ function PaymentsPanel() {
       <p className="text-sm text-muted">{res?.total ?? 0} payments · {paise(total)} collected in this list. Refunds are issued from the Razorpay dashboard.</p>
       <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-white">
         <table className="w-full text-left text-sm">
-          <thead className="bg-sand text-xs uppercase text-muted"><tr><th className="p-2.5">Date</th><th className="p-2.5">Shop</th><th className="p-2.5">Plan</th><th className="p-2.5">Amount</th><th className="p-2.5">Status</th><th className="p-2.5">Reference</th></tr></thead>
+          <thead className="bg-sand text-xs uppercase text-muted"><tr><th className="p-2.5">Date</th><th className="p-2.5">Shop / buyer</th><th className="p-2.5">Plan</th><th className="p-2.5">Amount</th><th className="p-2.5">Status</th><th className="p-2.5">Reference</th></tr></thead>
           <tbody>
             {res?.items.map((p) => (
               <tr key={p.id} className="border-t border-line">
                 <td className="p-2.5 whitespace-nowrap">{dateIN(p.paid_at ?? p.created_at)}</td>
-                <td className="p-2.5"><a className="underline" href={`/shops/${p.shop_slug}`} target="_blank">{p.shop_name}</a><span className="block text-xs text-muted">{p.email}</span></td>
+                <td className="p-2.5">{p.shop_slug ? <a className="underline" href={`/shops/${p.shop_slug}`} target="_blank">{p.shop_name}</a> : <span className="font-medium">{p.shop_name}</span>}<span className="block text-xs text-muted">{p.email}</span></td>
                 <td className="p-2.5">{p.plan_code}</td>
                 <td className="p-2.5">{paise(p.amount_paise)}</td>
                 <td className="p-2.5"><span className={`badge ${p.status === "paid" ? "bg-leaf-50 text-leaf" : p.status === "failed" ? "bg-brand-50 text-brand-800" : "bg-zari-100 text-zari-700"}`}>{p.status === "created" ? "not paid" : p.status}</span></td>
@@ -612,6 +644,132 @@ function TeamPanel({ flash }: { flash: (m: string) => void }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+type RequestRow = { id: string; title: string; status: string; city: string; email: string | null; min_price: number | null; max_price: number | null; image: string | null; responses: number; created_at: string; radius_km: number | null; unlocks: number };
+const SETTINGS: [string, string, string][] = [
+  ["max_responses_per_request", "Max replies per request", "Stops buyers being flooded; later sellers see “enough replies”."],
+  ["request_expiry_days", "Days a request stays open", "Requests close automatically after this."],
+  ["head_start_hours", "Head start for unlimited plans (hours)", "Sellers with a limited plan see new requests after this delay."],
+  ["max_notified_sellers", "Sellers notified instantly per request", "Nearest unlimited-plan sellers first."],
+  ["default_radius_km", "Default distance (km)", "Suggested search radius for buyers."],
+];
+
+function RequestsPanel({ flash }: { flash: (m: string) => void }) {
+  const [status, setStatus] = useState("open");
+  const [q, setQ] = useState("");
+  const [res, setRes] = useState<{ total: number; items: RequestRow[] } | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [cfg, setCfg] = useState<Record<string, number> | null>(null);
+  const load = useCallback(() => call<{ total: number; items: RequestRow[] }>("admin_requests", { p_status: status || null, p_q: q || null, p_limit: 100 }).then(setRes), [status, q]);
+  useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { call<Record<string, number>>("admin_settings").then(setCfg); }, []);
+
+  async function saveCfg(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await call("admin_save_settings", { p: cfg });
+      flash("Settings saved");
+    } catch (e2) {
+      alert(e2 instanceof Error ? e2.message : "Failed");
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl">Custom requests</h1>
+          <div className="flex flex-wrap gap-2">
+            <input className="input !w-44" placeholder="Search title, city, email" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search requests" />
+            <select className="input !w-auto" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status">
+              <option value="">All</option><option value="open">Open</option><option value="expired">Expired</option><option value="closed">Closed</option><option value="hidden">Removed</option>
+            </select>
+          </div>
+        </div>
+        <p className="text-sm text-muted">{res?.total ?? 0} requests. Routing: only approved shops within the buyer's distance whose plan allows requests. Change per-plan allowances in <strong>Plans</strong>.</p>
+        <ul className="mt-4 space-y-2">
+          {res?.items.map((r) => (
+            <li key={r.id}>
+              <button onClick={() => setOpen(r.id)} className="card flex w-full min-w-0 items-center gap-3 p-3 text-left hover:border-brand-200">
+                <div className="h-14 w-12 shrink-0 overflow-hidden rounded-lg bg-sand">{r.image && <img src={mediaUrl(r.image, "thumb")!} alt="" className="h-full w-full object-cover" />}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{r.title}</p>
+                  <p className="truncate text-xs text-muted">{r.email} · {r.city} · {r.radius_km ? `${r.radius_km} km` : "anywhere"} · {budgetLabel(r.min_price, r.max_price)} · {timeAgo(r.created_at)}</p>
+                </div>
+                <div className="shrink-0 text-right text-xs"><StatusBadge status={r.status === "hidden" ? "suspended" : r.status === "open" ? "approved" : "rejected"} /><p className="mt-1 text-muted">{r.unlocks} opened · {r.responses} replies</p></div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {cfg && (
+        <form onSubmit={saveCfg} className="card grid gap-3 p-5 sm:grid-cols-2" aria-labelledby="rq-settings">
+          <h2 id="rq-settings" className="text-xl sm:col-span-2">Request rules</h2>
+          {SETTINGS.map(([k, l, h]) => (
+            <div key={k}>
+              <label className="label" htmlFor={`set-${k}`}>{l}</label>
+              <input id={`set-${k}`} className="input" inputMode="numeric" value={cfg[k] ?? ""} onChange={(e) => setCfg({ ...cfg, [k]: Number(e.target.value.replace(/\D/g, "")) || 0 })} />
+              <p className="mt-1 text-xs text-muted">{h}</p>
+            </div>
+          ))}
+          <div className="sm:col-span-2"><button className="btn-primary">Save rules</button></div>
+        </form>
+      )}
+
+      {open && <RequestDrawer id={open} onClose={() => setOpen(null)} onChanged={(m) => { flash(m); load(); }} />}
+    </div>
+  );
+}
+
+function RequestDrawer({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: (m: string) => void }) {
+  const [d, setD] = useState<RequestDetail | null>(null);
+  const load = useCallback(() => call<RequestDetail>("get_request", { p_id: id }).then(setD), [id]);
+  useEffect(() => { load(); }, [load]);
+  async function setStatus(s: string) {
+    const note = s === "hidden" ? prompt("Reason shown to the buyer", "Not a genuine saree request") : null;
+    if (s === "hidden" && note === null) return;
+    await call("admin_set_request_status", { p_id: id, p_status: s, p_note: note });
+    onChanged(s === "hidden" ? "Request removed" : "Request updated");
+    load();
+  }
+  async function hideReply(rid: string, hidden: boolean) {
+    await call("admin_set_response_hidden", { p_id: rid, p_hidden: hidden });
+    onChanged(hidden ? "Reply hidden" : "Reply restored");
+    load();
+  }
+  return (
+    <div className="fixed inset-0 z-[70] flex justify-end bg-black/40" onClick={onClose}>
+      <div className="h-full w-full max-w-xl overflow-y-auto bg-cream p-4 shadow-xl sm:p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Request">
+        <div className="flex items-center justify-between"><h2 className="text-xl">Request</h2><button className="btn-ghost" onClick={onClose} aria-label="Close">✕</button></div>
+        {!d ? <div className="mt-4 h-40 animate-pulse rounded-2xl bg-sand" /> : (
+          <div className="mt-3 space-y-4">
+            <div className="card p-4">
+              <p className="font-semibold">{d.request.title}</p>
+              <p className="text-xs text-muted">{d.request.city} · {d.request.radius_km ? `${d.request.radius_km} km` : "anywhere"} · {budgetLabel(d.request.min_price, d.request.max_price)} · {d.request.status}</p>
+              {d.request.description && <p className="mt-2 whitespace-pre-line text-sm">{d.request.description}</p>}
+              <div className="mt-2 flex gap-2 overflow-x-auto">{d.request.images.map((p) => <img key={p} src={mediaUrl(p, "thumb")!} alt="" className="h-24 w-20 shrink-0 rounded-lg object-cover" />)}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {d.request.status !== "hidden" && <button className="btn-outline text-sm" onClick={() => setStatus("hidden")}>Remove request</button>}
+                {d.request.status !== "open" && <button className="btn-outline text-sm" onClick={() => setStatus("open")}>Re-open</button>}
+                {d.request.status === "open" && <button className="btn-ghost text-sm" onClick={() => setStatus("closed")}>Close</button>}
+              </div>
+            </div>
+            <h3 className="font-semibold">Replies ({d.responses.length})</h3>
+            {d.responses.map((x) => (
+              <div key={x.id} className={`card p-4 text-sm ${x.hidden ? "opacity-60" : ""}`}>
+                <div className="flex items-center justify-between gap-2"><a className="font-semibold underline" href={`/shops/${x.shop.slug}`} target="_blank">{x.shop.name}</a><span>{x.price_inr ? `₹${x.price_inr.toLocaleString("en-IN")}` : ""}</span></div>
+                <p className="mt-1">{x.message}</p>
+                <div className="mt-2 flex gap-2 overflow-x-auto">{x.images.map((p) => <img key={p} src={mediaUrl(p, "thumb")!} alt="" className="h-20 w-16 shrink-0 rounded-lg object-cover" />)}</div>
+                <button className="btn-ghost mt-2 -ml-2 text-xs" onClick={() => hideReply(x.id, !x.hidden)}>{x.hidden ? "Restore reply" : "Hide reply"}</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

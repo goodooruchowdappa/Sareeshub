@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import ShopForm, { shopToValues, valuesToPayload } from "./ShopForm";
 import ImageUploader from "./ImageUploader";
 import TagPicker from "./TagPicker";
+import SellerRequests from "./SellerRequests";
 import { rpc, supabase } from "../../lib/supabase";
 import { loadMe, requireSession } from "../../lib/session";
 import { buyPlan } from "../../lib/checkout";
@@ -25,7 +26,7 @@ type MyShop = {
   reviews: { id: string; rating: number; comment: string | null; created_at: string; author: string; seller_reply: string | null; hidden: boolean }[];
   payments: { id: string; plan_code: string; amount_paise: number; status: string; provider: string; razorpay_payment_id: string | null; method: string | null; created_at: string; paid_at: string | null }[];
 };
-type Tab = "overview" | "details" | "sarees" | "reviews" | "plan";
+type Tab = "overview" | "requests" | "details" | "sarees" | "reviews" | "plan";
 
 export default function SellerApp() {
   const [me, setMe] = useState<Me | null>(null);
@@ -89,6 +90,7 @@ export default function SellerApp() {
   const s = data.shop;
   const tabs: [Tab, string][] = [
     ["overview", "Overview"],
+    ["requests", "Custom requests"],
     ["sarees", `Sarees (${data.usage.products})`],
     ["details", "Shop details"],
     ["reviews", `Reviews (${data.reviews.length})`],
@@ -140,6 +142,7 @@ export default function SellerApp() {
             }}
           />
         )}
+        {tab === "requests" && <SellerRequests shopId={s.id} goPlan={() => go("plan")} flash={flash} />}
         {tab === "sarees" && <Sarees data={data} reload={reload} flash={flash} go={go} />}
         {tab === "reviews" && <Reviews data={data} reload={reload} flash={flash} />}
         {tab === "plan" && <Billing data={data} me={me} reload={reload} flash={flash} />}

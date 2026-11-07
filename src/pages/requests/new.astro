@@ -1,0 +1,12 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import RequestForm from "../../components/islands/RequestForm";
+---
+<Layout title="Request a custom saree" noindex>
+  <section class="container-x max-w-3xl py-8">
+    <a href="/requests" class="text-sm text-muted hover:text-ink">← How custom requests work</a>
+    <h1 class="mt-2 text-3xl">Request a custom saree</h1>
+    <p class="mt-1 text-muted">Sellers near you reply with photos and prices. Your phone number stays private.</p>
+    <div class="mt-6"><RequestForm client:only="react" /></div>
+  </section>
+</Layout>

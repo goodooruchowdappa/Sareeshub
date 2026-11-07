@@ -3,7 +3,7 @@ import { load } from "../lib/server";
 import { absoluteUrl } from "../lib/format";
 
 type Entries = { shops: { slug: string; updated_at: string }[]; products: { slug: string; updated_at: string }[]; tags: { slug: string }[] };
-const STATIC = ["/", "/map", "/sarees", "/sell", "/about", "/contact", "/privacy", "/terms", "/refund-policy", "/shipping-policy"];
+const STATIC = ["/", "/map", "/sarees", "/sell", "/requests", "/about", "/contact", "/privacy", "/terms", "/refund-policy", "/shipping-policy"];
 
 export const GET: APIRoute = async () => {
   const { data } = await load<Entries>("sitemap_entries");
