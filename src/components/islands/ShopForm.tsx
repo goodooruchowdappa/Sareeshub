@@ -139,7 +139,7 @@ export default function ShopForm({ initial, maxPhotos, submitLabel, onSubmit, li
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="f-phone">Phone for customers *</label>
-            <input id="f-phone" className="input" required inputMode="tel" pattern="\+?[0-9 ()\-]{6,20}" value={v.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98480 12345" />
+            <input id="f-phone" className="input" required inputMode="tel" pattern="\+?[0-9 \(\)\-]{6,20}" value={v.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98480 12345" />
             <label className="mt-1.5 flex items-center gap-2 text-xs">
               <input type="checkbox" checked={sameWa} onChange={(e) => setSameWa(e.target.checked)} /> Same number on WhatsApp
             </label>

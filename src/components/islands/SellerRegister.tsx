@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ShopForm, { emptyShop, valuesToPayload } from "./ShopForm";
 import { rpc, supabase } from "../../lib/supabase";
 import { loadMe, requireSession } from "../../lib/session";
+import { flushNotifications } from "../../lib/checkout";
 import type { Me, Plan } from "../../lib/types";
 
 export default function SellerRegister() {
@@ -34,7 +35,8 @@ export default function SellerRegister() {
         submitLabel="Submit for approval"
         onSubmit={async (v) => {
           const r = await rpc<{ id: string }>(supabase(), "create_shop", { p: valuesToPayload(v) });
-          window.location.href = `/seller?shop=${r.id}&new=1`;
+          flushNotifications();
+          setTimeout(() => (window.location.href = `/seller?shop=${r.id}&new=1`), 150);
         }}
       />
     </div>

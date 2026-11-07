@@ -222,7 +222,7 @@ with sync_playwright() as p:
         assert res["total"] == 0, res
     _()
 
-    admin_ctx = browser.new_context(viewport={"width": 1366, "height": 900})
+    admin_ctx = browser.new_context(viewport={"width": 1366, "height": 900}, geolocation={"latitude": 14.4260, "longitude": 77.7140}, permissions=["geolocation"])
     ap = admin_ctx.new_page()
     OPEN_PAGES.append(ap)
     ap.on("pageerror", lambda e: errors.append(str(e)))
@@ -398,6 +398,7 @@ with sync_playwright() as p:
         page.fill("#rq-desc", "For my sister's wedding in January. Blouse needed.")
         page.get_by_role("button", name="📍 Use my current location").click()
         expect(page.get_by_test_id("place-label")).to_contain_text("Dharmavaram", timeout=10000)
+        expect(page.get_by_test_id("reach")).to_contain_text("Will reach", timeout=10000)
         shot(page, "21-request-form")
         page.get_by_role("button", name="Send request to sellers").click()
         page.wait_for_url(re.compile(r"/account/requests\?id="), timeout=15000)
@@ -507,6 +508,98 @@ with sync_playwright() as p:
         ap.fill("#pl-lead", "3")
         ap.get_by_role("button", name="Save plan").click()
         expect(ap.locator("[data-plan-row=free]")).to_contain_text("3/month", timeout=10000)
+    _()
+
+    # ───────────── Real-world: reports, claims, admin listings, empty areas ─────────────
+    @step("Buyer reports a wrong phone number; admin sees and resolves it")
+    def _():
+        page.goto(APP + "/shops/ravi-handloom-weavers-dharmavaram?fresh=1")
+        page.get_by_role("button", name="Report a problem").scroll_into_view_if_needed()
+        page.wait_for_timeout(1500)  # island hydrates when visible
+        page.get_by_role("button", name="Report a problem").click()
+        page.select_option("#rp-reason", "wrong_phone")
+        page.get_by_label("Details").fill("Number says switched off for 3 days")
+        page.get_by_role("button", name="Send").click()
+        expect(page.locator("text=Thanks for telling us")).to_be_visible(timeout=10000)
+        ap.goto(APP + "/admin?tab=reports")
+        rep = ap.get_by_test_id("report").filter(has_text="Ravi Handloom Weavers")
+        expect(rep).to_contain_text("Phone not working", timeout=10000)
+        expect(rep).to_contain_text("switched off")
+        shot(ap, "29-admin-reports")
+        ap.once("dialog", lambda d: d.accept("Called seller, updated number"))
+        rep.get_by_role("button", name="Resolved").click()
+        expect(ap.locator("text=Marked resolved")).to_be_visible()
+    _()
+
+    @step("Admin lists a shop for launch; it shows 'Listed by Sarees Hub' and the owner gets it on sign-in")
+    def _():
+        ap.goto(APP + "/admin?tab=add")
+        ap.fill("#add-owner", "venkat.sarees@example.com")
+        ap.fill("#f-name", "Venkateswara Silk House")
+        ap.fill("#f-phone", "+91 93930 12345")
+        ap.get_by_role("button", name="📍 Use my current location").click()
+        expect(ap.locator("text=✓ Pin set")).to_be_visible(timeout=15000)
+        expect(ap.locator("#f-city")).to_have_value("Dharmavaram", timeout=8000)
+        ap.locator("button.chip", has_text="Pure Pattu").first.click()
+        shot(ap, "30-admin-add-shop")
+        ap.get_by_role("button", name="Publish listing").click()
+        expect(ap.locator("text=Shop listed")).to_be_visible(timeout=15000)
+        shop = get(f"{MOCK}/rest/v1/rpc/search_shops", "POST", {"p_q": "Venkateswara Silk"})[1]["items"][0]
+        page.goto(APP + f"/shops/{shop['slug']}?fresh=1")
+        expect(page.locator("text=Listed by Sarees Hub").first).to_be_visible()
+        expect(page.get_by_role("button", name="Own this shop? Claim it — free")).to_be_visible()
+        shot(page, "31-listed-by-us")
+        owner = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+        op = owner.new_page()
+        login(op, session("venkat.sarees@example.com", "Venkat Rao"))
+        op.goto(APP + "/seller")
+        expect(op.locator("h1", has_text="Venkateswara Silk House")).to_be_visible(timeout=10000)
+        owner.close()
+    _()
+
+    @step("Owner claims an admin-listed shop from its page; admin verifies and hands it over")
+    def _():
+        tok = session("goodooruchowdappa@gmail.com", "Sai")["access_token"]
+        r = get(f"{MOCK}/rest/v1/rpc/admin_create_shop", "POST", {"p": {"name": "Padmavathi Sarees", "kind": "shop", "phone": "9000044444", "city": "Dharmavaram", "lat": 14.41, "lng": 77.71, "photos": []}}, {"Authorization": f"Bearer {tok}"})[1]
+        claimer = browser.new_context()
+        cp = claimer.new_page()
+        login(cp, session("padma.owner@example.com", "Padmavathi"))
+        cp.goto(APP + f"/shops/{r['slug']}?fresh=1")
+        cp.get_by_role("button", name="Own this shop? Claim it — free").scroll_into_view_if_needed()
+        cp.wait_for_timeout(1500)
+        cp.get_by_role("button", name="Own this shop? Claim it — free").click()
+        cp.get_by_label("Details").fill("I am Padmavathi, the owner. Call the number on the page.")
+        cp.get_by_role("button", name="Send").click()
+        expect(cp.locator("text=call the shop's number")).to_be_visible(timeout=10000)
+        ap.goto(APP + "/admin?tab=reports")
+        rep = ap.get_by_test_id("report").filter(has_text="Padmavathi Sarees")
+        expect(rep).to_contain_text("Owner wants to claim", timeout=10000)
+        ap.once("dialog", lambda d: d.accept())
+        rep.get_by_role("button", name="Verified — hand over").click()
+        expect(ap.locator("text=Shop handed over")).to_be_visible()
+        cp.goto(APP + "/seller")
+        expect(cp.locator("h1", has_text="Padmavathi Sarees")).to_be_visible(timeout=10000)
+        claimer.close()
+    _()
+
+    @step("Seller gets approval/review alerts in the bell")
+    def _():
+        demo = session("demo-seller@example.com", "Ravi Kumar")["access_token"]
+        kinds = {n["kind"] for n in get(f"{MOCK}/rest/v1/rpc/my_notifications", "POST", {}, {"Authorization": f"Bearer {demo}"})[1]["items"]}
+        assert "review_new" in kinds, kinds
+        tok = json.loads(sp.evaluate("localStorage.getItem('sb-localhost-auth-token')"))["access_token"]
+    _()
+
+    @step("Empty town on the map shows the nearest shops instead of a dead end")
+    def _():
+        far = browser.new_context(viewport={"width": 1366, "height": 900})
+        fp = far.new_page()
+        fp.goto(APP + "/map?lat=28.6139&lng=77.2090&z=12")
+        expect(fp.locator("text=No shops in this area yet")).to_be_visible(timeout=15000)
+        expect(fp.get_by_test_id("nearest-shop").first).to_be_visible(timeout=10000)
+        expect(fp.get_by_test_id("nearest-shop").first).to_contain_text("km")
+        shot(fp, "32-map-empty-nearest", full=False)
+        far.close()
     _()
 
     if errors:

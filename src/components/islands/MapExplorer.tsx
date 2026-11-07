@@ -36,6 +36,7 @@ export default function MapExplorer() {
 
   const [filters, setFilters] = useState<Filters>(init?.filters ?? { q: "", kind: "", tag: "" });
   const [shops, setShops] = useState<ShopCard[]>([]);
+  const [nearest, setNearest] = useState<ShopCard[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +81,12 @@ export default function MapExplorer() {
       if (id !== reqId.current) return;
       setShops(res.items);
       setTotal(res.total);
+      // Nothing in view (common in towns we don't cover yet): show the closest shops anywhere.
+      if (res.items.length === 0 && !filters.q) {
+        rpc<ShopCard[]>(supabase(), "nearest_shops", { p_lat: origin.lat, p_lng: origin.lng, p_kind: filters.kind || null, p_tag: filters.tag || null, p_limit: 5 })
+          .then((n) => id === reqId.current && setNearest(n))
+          .catch(() => {});
+      } else setNearest([]);
       const src = map.getSource("shops") as GeoJSONSource | undefined;
       src?.setData({
         type: "FeatureCollection",
@@ -397,10 +404,42 @@ export default function MapExplorer() {
           {!loading && shops.length === 0 && (
             <li className="rounded-2xl border border-dashed border-line bg-white p-5 text-center text-sm">
               <p className="font-semibold">No shops in this area yet</p>
-              <p className="mt-1 text-muted">Zoom out or move the map. Know a good saree shop here? Tell them to register — it's free.</p>
-              <a href="/seller/register" className="btn-outline mt-3">Register a shop</a>
+              <p className="mt-1 text-muted">
+                {nearest.length > 0 ? "Here are the closest ones. Many weavers also ship — or " : "Zoom out or move the map. Or "}
+                <a className="underline" href="/requests">send a custom request</a> to sellers who deliver.
+              </p>
+              {nearest.length > 0 && (
+                <button
+                  type="button"
+                  className="btn-primary mt-3"
+                  onClick={() => {
+                    const m = mapRef.current;
+                    if (!m) return;
+                    const c = m.getCenter();
+                    const lngs = [c.lng, ...nearest.slice(0, 3).map((x) => x.lng)];
+                    const lats = [c.lat, ...nearest.slice(0, 3).map((x) => x.lat)];
+                    m.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: 60, maxZoom: 13, maxDuration: 2000 });
+                  }}
+                >
+                  Show nearest on map
+                </button>
+              )}
             </li>
           )}
+          {!loading && shops.length === 0 && nearest.map((s) => (
+            <li key={`n-${s.id}`}>
+              <a href={`/shops/${s.slug}`} className="card flex items-center gap-3 p-2.5 hover:border-brand-200" data-testid="nearest-shop">
+                <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-sand">
+                  {s.cover && <img src={mediaUrl(s.cover, "thumb")!} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">{s.name}</span>
+                  <span className="block truncate text-xs text-muted">{kindLabel(s.kind)} · {placeLine(s)}</span>
+                </span>
+                {s.distance_km != null && <span className="shrink-0 text-xs font-semibold text-brand-700">{formatKm(s.distance_km)}</span>}
+              </a>
+            </li>
+          ))}
           {shops.map((s) => (
             <li key={s.id} id={`shop-${s.id}`}>
               <div

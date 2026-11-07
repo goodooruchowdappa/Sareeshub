@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import MiniMap from "./MiniMap";
-import ShopForm, { shopToValues, valuesToPayload } from "./ShopForm";
+import ShopForm, { emptyShop, shopToValues, valuesToPayload } from "./ShopForm";
+import { flushNotifications } from "../../lib/checkout";
 import { rpc, supabase } from "../../lib/supabase";
 import { loadMe, requireSession } from "../../lib/session";
 import { TAG_CATEGORIES, categoryLabel, kindLabel } from "../../lib/config";
 import { budgetLabel, dateIN, mediaUrl, paise, telLink, timeAgo } from "../../lib/format";
 import type { Me, Plan, RequestDetail, TagRef } from "../../lib/types";
 
-type Tab = "overview" | "pending" | "changes" | "shops" | "requests" | "reviews" | "tags" | "plans" | "payments" | "team";
+type Tab = "overview" | "pending" | "changes" | "shops" | "add" | "reports" | "requests" | "reviews" | "tags" | "plans" | "payments" | "team";
 type Overview = Record<string, number>;
 type ShopRow = {
   id: string; slug: string; name: string; kind: string; status: string; city: string; state: string | null; country: string;
@@ -60,6 +61,8 @@ export default function AdminApp() {
     ["pending", "Approvals", ov?.pending],
     ["changes", "Change requests", ov?.changes],
     ["shops", "All shops"],
+    ["add", "+ Add a shop"],
+    ["reports", "Reports & claims", ov?.open_reports],
     ["requests", "Custom requests", ov?.open_requests],
     ["reviews", "Reviews"],
     ["tags", "Tags"],
@@ -84,6 +87,8 @@ export default function AdminApp() {
         {tab === "changes" && <ShopList key="c" changes onOpen={setOpenShop} />}
         {tab === "shops" && <ShopList key="a" onOpen={setOpenShop} filterable />}
         {tab === "requests" && <RequestsPanel flash={flash} />}
+        {tab === "add" && <AddShopPanel onCreated={(id, m) => { flash(m); refreshOv(); setOpenShop(id); go("shops"); }} />}
+        {tab === "reports" && <ReportsPanel flash={flash} onOpen={setOpenShop} onChanged={refreshOv} />}
         {tab === "reviews" && <ReviewsPanel flash={flash} />}
         {tab === "tags" && <TagsPanel flash={flash} />}
         {tab === "plans" && <PlansPanel flash={flash} />}
@@ -119,6 +124,8 @@ function OverviewPanel({ ov, go }: { ov: Overview | null; go: (t: Tab) => void }
     ["Reviews", ov.reviews, "reviews"],
     ["Users", ov.users, "team"],
     ["Leads sent (30 days)", ov.leads_30d],
+    ["Open reports & claims", ov.open_reports, "reports"],
+    ["Listed by us, not yet claimed", ov.unclaimed, "shops"],
     ["Open custom requests", ov.open_requests, "requests"],
     ["Requests (30 days)", ov.requests_30d, "requests"],
     ["Seller replies (30 days)", ov.responses_30d, "requests"],
@@ -230,6 +237,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
   const [edit, setEdit] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [grant, setGrant] = useState({ plan: "pro", days: 30, amount: 0, note: "" });
+  const [owner, setOwner] = useState("");
 
   const load = useCallback(() => call<AdminShop>("admin_shop", { p_shop: id }).then((x) => { setD(x); setNote(x.shop.review_note ?? ""); }), [id]);
   useEffect(() => {
@@ -247,6 +255,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
     setErr(null);
     try {
       await call(fn, args);
+      flushNotifications();
       onChanged(msg);
       await load();
     } catch (e) {
@@ -336,7 +345,7 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               <p className="font-semibold">Record an offline payment / grant a plan</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <select className="input" value={grant.plan} onChange={(e) => { const p = plans.find((x) => x.code === e.target.value); setGrant((g) => ({ ...g, plan: e.target.value, days: p?.duration_days ?? g.days, amount: p?.price_inr ?? 0 })); }}>
-                  {plans.filter((p) => p.code !== "free").map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
+                  {plans.filter((p) => p.code !== "free" && (p.audience ?? "seller") === "seller").map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
                 </select>
                 <input className="input" inputMode="numeric" value={grant.days} onChange={(e) => setGrant((g) => ({ ...g, days: Number(e.target.value) || 0 }))} aria-label="Days" />
                 <input className="input" inputMode="numeric" value={grant.amount} onChange={(e) => setGrant((g) => ({ ...g, amount: Number(e.target.value) || 0 }))} aria-label="Amount received (₹)" />
@@ -344,6 +353,15 @@ function ShopDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               </div>
               <p className="text-xs text-muted">Plan · days · amount received in ₹ (0 for complimentary) · reference</p>
               <button className="btn-outline" disabled={busy} onClick={() => act("admin_grant_plan", { p_shop: s.id, p_plan: grant.plan, p_days: grant.days, p_amount_inr: grant.amount, p_note: grant.note || null }, "Plan granted")}>Grant plan</button>
+            </div>
+
+            <div className="card space-y-2 p-4 text-sm">
+              <p className="font-semibold">Hand over to the real owner</p>
+              <p className="text-xs text-muted">Call the shop's number first to verify. If they haven't signed in yet, the shop moves to them the first time they sign in with this Google email.</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input className="input" type="email" placeholder="owner@gmail.com" value={owner} onChange={(e) => setOwner(e.target.value)} aria-label="Owner's Google email" />
+                <button className="btn-outline shrink-0" disabled={busy || !owner} onClick={() => act("admin_transfer_shop", { p_shop: s.id, p_email: owner }, "Ownership updated")}>Transfer</button>
+              </div>
             </div>
 
             {d.products.length > 0 && (
@@ -770,6 +788,117 @@ function RequestDrawer({ id, onClose, onChanged }: { id: string; onClose: () => 
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function AddShopPanel({ onCreated }: { onCreated: (id: string, msg: string) => void }) {
+  const [email, setEmail] = useState("");
+  return (
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl">Add a shop</h1>
+        <p className="text-sm text-muted">
+          For launch: list shops and weavers you've visited or called, so buyers find a full map from day one.
+          It goes live as “Listed by Sarees Hub”. When the owner signs in with the Google email below (or claims it from the shop page and you verify), it moves to their dashboard.
+        </p>
+      </div>
+      <div className="card p-4">
+        <label className="label" htmlFor="add-owner">Owner's Google email (optional)</label>
+        <input id="add-owner" className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="owner@gmail.com" />
+      </div>
+      <ShopForm
+        initial={emptyShop()}
+        maxPhotos={10}
+        submitLabel="Publish listing"
+        onSubmit={async (v) => {
+          const r = await call<{ id: string; slug: string }>("admin_create_shop", { p: valuesToPayload(v), p_claim_email: email || null });
+          onCreated(r.id, "Shop listed");
+        }}
+      />
+    </div>
+  );
+}
+
+type Report = {
+  id: string; reason: string; details: string | null; status: string; admin_note: string | null; created_at: string;
+  reporter: string | null; reporter_name: string | null; same_shop_open: number;
+  shop: { id: string; slug: string; name: string; city: string; phone: string; status: string; unclaimed: boolean; owner_email: string | null };
+};
+const REPORT_LABEL: Record<string, string> = {
+  closed: "Closed / moved", wrong_phone: "Phone not working", wrong_location: "Wrong map pin", prices: "Prices / sarees not as shown",
+  behaviour: "Bad experience", fake: "Fake / fraud", other: "Other", claim: "Owner wants to claim",
+};
+
+function ReportsPanel({ flash, onOpen, onChanged }: { flash: (m: string) => void; onOpen: (id: string) => void; onChanged: () => void }) {
+  const [status, setStatus] = useState("open");
+  const [items, setItems] = useState<Report[] | null>(null);
+  const load = useCallback(() => call<Report[]>("admin_reports", { p_status: status || null }).then(setItems), [status]);
+  useEffect(() => { load(); }, [load]);
+  useReload(load);
+
+  async function resolve(r: Report, st: string) {
+    const note = st === "open" ? null : prompt("Note (optional) — what did you do?", "") ;
+    if (note === null && st !== "open") return;
+    await call("admin_resolve_report", { p_id: r.id, p_status: st, p_note: note });
+    flash(st === "dismissed" ? "Dismissed" : "Marked resolved");
+    load();
+    onChanged();
+  }
+  async function transfer(r: Report) {
+    if (!r.reporter || !confirm(`Did you call ${r.shop.phone} and confirm ${r.reporter} is the owner of ${r.shop.name}?`)) return;
+    await call("admin_transfer_shop", { p_shop: r.shop.id, p_email: r.reporter });
+    flushNotifications();
+    flash("Shop handed over");
+    load();
+    onChanged();
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl">Reports & claims</h1>
+        <select className="input !w-auto" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status">
+          <option value="open">Open</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option><option value="">All</option>
+        </select>
+      </div>
+      <p className="text-sm text-muted">Buyers report closed shops, wrong numbers or pins; owners ask to claim listings. Call the shop's number to check, then fix the listing, suspend it, or hand it over.</p>
+      {!items ? <div className="mt-4 h-32 animate-pulse rounded-2xl bg-sand" /> : items.length === 0 ? (
+        <p className="card mt-4 p-8 text-center text-muted">Nothing to check. 🎉</p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {items.map((r) => (
+            <li key={r.id} className="card p-4 text-sm" data-testid="report">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className={`badge ${r.reason === "claim" ? "bg-leaf-50 text-leaf" : r.reason === "fake" ? "bg-brand-50 text-brand-800" : "bg-zari-100 text-zari-700"}`}>{REPORT_LABEL[r.reason] ?? r.reason}</span>
+                  <p className="mt-1 font-semibold">{r.shop.name} <span className="font-normal text-muted">· {r.shop.city}</span></p>
+                  <p className="text-xs text-muted">
+                    {r.shop.unclaimed ? "Listed by us" : `Owner ${r.shop.owner_email ?? "—"}`} · shop {r.shop.status} · <a className="underline" href={telLink(r.shop.phone)}>{r.shop.phone}</a>
+                    {r.same_shop_open > 1 && <strong className="text-brand-800"> · {r.same_shop_open} open reports</strong>}
+                  </p>
+                </div>
+                <span className="text-xs text-muted">{timeAgo(r.created_at)}</span>
+              </div>
+              {r.details && <p className="mt-2 rounded-lg bg-sand/60 p-2">“{r.details}”</p>}
+              <p className="mt-1 text-xs text-muted">From {r.reporter_name ?? ""} {r.reporter}</p>
+              {r.admin_note && <p className="mt-1 text-xs">Note: {r.admin_note}</p>}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button className="btn-outline !py-1.5 text-xs" onClick={() => onOpen(r.shop.id)}>Open shop</button>
+                {r.reason === "claim" && r.status === "open" && <button className="btn-primary !py-1.5 text-xs" onClick={() => transfer(r)}>Verified — hand over</button>}
+                {r.status === "open" ? (
+                  <>
+                    <button className="btn-ghost !py-1.5 text-xs" onClick={() => resolve(r, "resolved")}>Resolved</button>
+                    <button className="btn-ghost !py-1.5 text-xs text-muted" onClick={() => resolve(r, "dismissed")}>Dismiss</button>
+                  </>
+                ) : (
+                  <button className="btn-ghost !py-1.5 text-xs" onClick={() => resolve(r, "open")}>Re-open</button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -57,6 +57,7 @@ export type ShopDetail = {
     approved_at: string | null;
     updated_at: string;
     plan_name: string;
+    unclaimed?: boolean;
     tags: TagRef[];
   };
   products: ProductCard[];
@@ -134,6 +135,7 @@ export type BuyerStatus = {
   quota: number | null;
   used: number;
   remaining: number | null;
+  refunded?: number;
   ends_at: string | null;
 };
 

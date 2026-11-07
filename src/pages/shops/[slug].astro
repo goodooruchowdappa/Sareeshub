@@ -7,6 +7,7 @@ import ServiceDown from "../../components/ServiceDown.astro";
 import MiniMap from "../../components/islands/MiniMap";
 import ReviewForm from "../../components/islands/ReviewForm";
 import FavoriteButton from "../../components/islands/FavoriteButton";
+import ShopReport from "../../components/islands/ShopReport";
 import { load } from "../../lib/server";
 import { kindLabel } from "../../lib/config";
 import { absoluteUrl, dateIN, directionsLink, mediaUrl, placeLine, telLink, truncate, whatsappLink } from "../../lib/format";
@@ -139,7 +140,9 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
     <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-2">
         <span class="badge bg-brand-50 text-brand-800">{kindLabel(s.kind)}</span>
-        <span class="badge bg-leaf-50 text-leaf">✓ Verified listing</span>
+        {s.unclaimed
+          ? <span class="badge bg-sand text-muted" title="Added by our team. The owner hasn't joined yet — call to confirm details.">Listed by Sarees Hub</span>
+          : <span class="badge bg-leaf-50 text-leaf">✓ Verified listing</span>}
         {s.featured && <span class="badge bg-zari-100 text-zari-700">★ Featured</span>}
       </div>
       <h1 class="mt-2 text-3xl leading-tight text-brand-900 sm:text-4xl">{s.name}</h1>
@@ -277,10 +280,14 @@ const totalReviews = s ? Object.values(d.rating_breakdown ?? {}).reduce((a, b) =
           <a href={directionsLink(s.lat, s.lng)} target="_blank" rel="noopener" class="btn-outline w-full" data-track="directions">Get directions</a>
         </div>
       </div>
-      <p class="px-1 text-xs text-muted">
-        Listed since {dateIN(s.approved_at)}. Prices and stock are set by the seller — confirm with them before visiting.
-        <a href={`/contact?report=${s.slug}`} class="underline">Report this listing</a>
-      </p>
+      <div class="space-y-2 px-1 text-xs text-muted">
+        <p>
+          {s.unclaimed
+            ? "Added by the Sarees Hub team from a visit or call. Call before visiting to confirm timings."
+            : `Listed since ${dateIN(s.approved_at)}. Prices and stock are set by the seller — confirm with them before visiting.`}
+        </p>
+        <ShopReport client:idle shopId={s.id} shopName={s.name} unclaimed={!!s.unclaimed} />
+      </div>
     </aside>
   </section>
 

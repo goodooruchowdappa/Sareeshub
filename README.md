@@ -15,6 +15,8 @@ Find saree shops, handloom weavers, co-op societies, wholesalers and showrooms o
 | | Buy Pro / yearly plans with Razorpay (UPI, cards, netbanking) | Overview: pending, revenue, leads |
 | **Custom saree requests:** upload reference photos, pick saree type, colours, budget, date and distance (sign-in required) | **Custom requests tab:** see requests near you, open one, reply with your photos, price and ready-in days | Moderate requests and replies |
 | Free: 1 request / 30 days; Request Pass ₹49 (5) and Request Plus ₹149 (unlimited, 90 days) via Razorpay | Free plan: 3 requests a month, seen after a 2-hour head start; Pro/yearly: unlimited, notified instantly | Set each plan's request allowance in **Plans**; reply cap, expiry, head start in **Custom requests → Request rules** |
+| Map never dead-ends: an empty town shows the nearest shops; request form shows how many sellers it will reach and refuses if none; requests nobody answered don't use up the allowance | Alerts for approval / rejection / new reviews; claim a shop the team listed for you | **Add a shop** on a seller's behalf (launch), hand it over by Google email or a verified claim |
+| Report a problem on any shop (closed, wrong number, wrong pin, fake…) | | **Reports & claims** queue; alerts for new applications, change requests, reports |
 | Replies with photos and prices; shortlist, call or WhatsApp; phone number stays private | Notification bell (+ optional e-mail) for new requests and shortlists | Buyer passes appear in Payments |
 
 SEO: server-rendered pages with titles, descriptions, canonical URLs, Open Graph/Twitter cards, JSON-LD (`ClothingStore`, `Product`, `BreadcrumbList`, `FAQPage`, `WebSite` search), `sitemap.xml`, `robots.txt`, web manifest and icons. Collection pages (e.g. `/collections/pure-pattu`) target searches like “pure pattu sarees near me”.
@@ -72,18 +74,37 @@ Until Razorpay is set up, sellers see “Online payments aren't switched on yet�
 ### 4b. E-mail alerts (optional)
 New requests and replies always show in the bell inside the site. To also e-mail them, create a free [Resend](https://resend.com) account (3,000 mails/month), verify your domain `sareeshub.in`, and add the secret `RESEND_API_KEY` (and optionally the variable `EMAIL_FROM`, e.g. `Sarees Hub <alerts@sareeshub.in>`) in Cloudflare.
 
-### Already ran `setup.sql` before custom requests were added?
-Run only [`supabase/migrations/20261107000004_custom_requests.sql`](supabase/migrations/20261107000004_custom_requests.sql) in the SQL Editor. It is safe to run on top of the existing database and keeps your data.
+### Already ran an older `setup.sql`?
+Run the newer migration files in order in the SQL Editor, each once — they keep your data:
+- [`20261107000004_custom_requests.sql`](supabase/migrations/20261107000004_custom_requests.sql) (custom requests)
+- [`20261107000005_real_world.sql`](supabase/migrations/20261107000005_real_world.sql) (reports, claims, admin listings, alerts)
 
 ### 5. Keep-alive and CI (GitHub)
 - Repository **Settings → Secrets and variables → Actions → Variables:** add `SITE_URL` = `https://yourdomain.in`. The *Keep Supabase awake* workflow then pings `/api/health` twice a week.
-- `CI` runs type checks, the 39 database tests, and the build on every push.
+- `CI` runs type checks, the 47 database tests, and the build on every push.
 - Optional `deploy.yml` deploys on push to `main` if you add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets plus the `PUBLIC_*` variables (skip it if you used Cloudflare's Git import).
 
 ### 6. After launch
 - Sign in at `/login` with the admin Google account, then go to `/admin`.
 - Submit `https://yourdomain.in/sitemap.xml` in [Google Search Console](https://search.google.com/search-console).
 - Change plan prices any time in **Admin → Plans** (prices include GST; consult your CA about GST registration).
+
+## How the business works
+
+**Who pays:** sellers pay for visibility and custom-request leads (Pro ₹299/month, yearly plans). Buyers can pay small one-time passes for extra custom requests. Browsing, calling, WhatsApp, directions and reviews are free for buyers. No commission: buyers pay the shop directly, so Sarees Hub never handles saree money, returns or delivery.
+
+**Why sellers upgrade:** top position on the map and search, a featured badge, more sarees and photos, and unlimited custom requests with a head start. Free sellers still get 3 requests a month, which shows them what they're missing.
+
+**Launch plan (what makes or breaks it):**
+1. **Fill one area first.** A map with 3 shops loses buyers. Pick one cluster (e.g. Dharmavaram + Anantapur + Hindupur) and use **Admin → + Add a shop** to list 50–100 shops and weavers you have called or visited. They show as “Listed by Sarees Hub”.
+2. **Hand shops to owners.** Visit or call them, show their page, and type their Google email in the shop drawer (or they tap “Claim it” on the page and you verify by calling the listed number). Give early sellers 2–3 months of Pro free (**Grant plan**, amount 0) so they reply to custom requests.
+3. **Then bring buyers** with WhatsApp groups, Instagram reels of shops, and Google (each shop and `/collections/…` page is built to rank for “pure pattu sarees near me”). Ask happy buyers to leave reviews.
+4. **Start charging** once sellers are getting calls (the seller dashboard shows views, calls and WhatsApp taps).
+5. **Expand** to the next weaving cluster (Kanchipuram, Pochampally, Gadwal…).
+
+**Daily admin work (15–30 min):** approve new shops (call the number first), clear Reports & claims, glance at Custom requests for spam.
+
+**Not built yet (later phases):** Telugu / Kannada / Tamil / Hindi pages; WhatsApp alerts to sellers (paid per message via the WhatsApp Business API, so only worth it once sellers pay); auto-hiding shops that never respond; GST invoices for plan payments (needed once you register for GST — Razorpay can generate them).
 
 ## Local development
 
@@ -99,10 +120,10 @@ Add `http://localhost:4321/auth/callback` to Supabase redirect URLs to test Goog
 
 ```sh
 npm run check             # TypeScript / Astro
-npm run test:db           # 39 database tests: security rules, approvals, plan limits, payments, reviews, tags, custom requests
+npm run test:db           # 47 database tests: security rules, approvals, plan limits, payments, reviews, tags, custom requests, reports, claims
 ```
 
-`tests/e2e/run.py` drives Chrome through 26 real flows (custom saree requests with plan-based routing, buyer passes and seller replies, map, search, reviews, seller registration on a phone with GPS pin and photo upload, admin approval, change requests, saree upload, Razorpay order → signature → activation → webhook). It runs against a local Postgres plus a mock of Supabase/Photon/Razorpay — see [`tests/README.md`](tests/README.md).
+`tests/e2e/run.py` drives Chrome through 31 real flows (reports, claims, admin listings, empty-town fallback, custom saree requests with plan-based routing, buyer passes and seller replies, map, search, reviews, seller registration on a phone with GPS pin and photo upload, admin approval, change requests, saree upload, Razorpay order → signature → activation → webhook). It runs against a local Postgres plus a mock of Supabase/Photon/Razorpay — see [`tests/README.md`](tests/README.md).
 
 ## How the code is organised
 
