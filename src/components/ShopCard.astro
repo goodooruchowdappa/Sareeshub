@@ -18,9 +18,9 @@ const img = mediaUrl(shop.cover, "thumb");
     {shop.distance_km != null && <span class="badge absolute right-2 top-2 bg-white/95 text-ink shadow">{formatKm(shop.distance_km)}</span>}
   </div>
   <div class="flex flex-1 flex-col gap-1.5 p-3">
-    <p class="text-[11px] font-semibold uppercase tracking-wide text-zari-700">{kindLabel(shop.kind)}</p>
-    <h3 class="font-display text-lg leading-snug text-ink group-hover:text-brand-700">{shop.name}</h3>
-    <p class="text-sm text-muted">{placeLine(shop)}</p>
+    <p class="text-xs font-medium text-zari-700">{kindLabel(shop.kind)}</p>
+    <h3 class="line-clamp-2 font-display text-lg leading-snug text-ink group-hover:text-brand-700">{shop.name}</h3>
+    <p class="line-clamp-1 text-sm text-muted">{placeLine(shop)}</p>
     <Stars rating={shop.rating_avg} count={shop.rating_count} />
     {shop.tags.length > 0 && (
       <div class="mt-auto flex flex-wrap gap-1 pt-1">

@@ -150,14 +150,14 @@ with sync_playwright() as p:
     @step("Sarees catalogue: tag filter, price sort, saree page")
     def _():
         page.goto(APP + "/sarees?tag=pure-pattu&sort=price_asc")
-        prices = [int(re.sub(r"[^\d]", "", t)) for t in page.locator("section[aria-label=Results] h3 + p span.font-semibold").all_text_contents() if re.search(r"\d", t)]
+        prices = [int(re.sub(r"[^\d]", "", t)) for t in page.locator("section[aria-label=Results] h3 + p span[data-price]").all_text_contents() if re.search(r"\d", t)]
         assert prices == sorted(prices) and len(prices) > 3, f"prices {prices}"
         page.locator("section[aria-label=Results] a").first.click()
         page.wait_for_url(re.compile(r"/sarees/[^?/]+$"))
         ld = [json.loads(x) for x in page.locator('script[type="application/ld+json"]').all_text_contents()]
         prod = next(d for d in ld if d["@type"] == "Product")
         assert prod["offers"]["priceCurrency"] == "INR", prod
-        wa = urllib.parse.unquote(page.locator("a[data-track=whatsapp]").get_attribute("href"))
+        wa = urllib.parse.unquote(page.locator("a[data-track=whatsapp]").first.get_attribute("href"))
         assert "Is it available" in wa, wa
         shot(page, "04-saree")
     _()

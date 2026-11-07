@@ -102,7 +102,7 @@ const jsonLd = p
     </div>
 
     <div>
-      <a href={`/shops/${s.slug}`} class="text-sm font-semibold uppercase tracking-wide text-zari-700 hover:underline">{s.name}</a>
+      <a href={`/shops/${s.slug}`} class="text-sm font-semibold text-zari-700 hover:underline">{s.name}</a>
       <h1 class="mt-1 text-3xl leading-tight sm:text-4xl">{p.title}</h1>
       <div class="mt-4 flex items-baseline gap-3">
         <span class="font-display text-4xl text-brand-800">{rupees(p.price_inr)}</span>
@@ -111,7 +111,7 @@ const jsonLd = p
       </div>
       <p class="mt-1 text-xs text-muted">Price set by the seller. Confirm availability and final price with them.</p>
 
-      <div class="mt-5 grid gap-2 sm:grid-cols-2">
+      <div class="mt-5 grid gap-2 max-md:hidden sm:grid-cols-2">
         <a href={whatsappLink(s.whatsapp || s.phone, waText)} target="_blank" rel="noopener" class="btn-whatsapp !py-3" data-track="whatsapp">Ask on WhatsApp</a>
         <a href={telLink(s.phone)} class="btn-primary !py-3" data-track="call">Call the shop</a>
       </div>
@@ -133,7 +133,7 @@ const jsonLd = p
       <a href={`/shops/${s.slug}`} class="card mt-6 flex items-center gap-4 p-4 hover:border-brand-200">
         {s.cover ? <img src={mediaUrl(s.cover, "thumb")} alt="" class="h-16 w-16 rounded-xl object-cover" loading="lazy" /> : <span class="border-pattern h-16 w-16 rounded-xl"></span>}
         <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wide text-zari-700">{kindLabel(s.kind)}</p>
+          <p class="text-xs font-medium text-zari-700">{kindLabel(s.kind)}</p>
           <p class="truncate font-display text-lg">{s.name}</p>
           <p class="truncate text-sm text-muted">{placeLine(s)}</p>
           <Stars rating={s.rating_avg} count={s.rating_count} />
@@ -155,6 +155,10 @@ const jsonLd = p
       <div class="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-6">{data.similar.slice(0, 6).map((x) => <ProductCardC product={x} />)}</div>
     </section>
   )}
+  <Fragment slot="bottombar">
+    <a href={whatsappLink(s.whatsapp || s.phone, waText)} target="_blank" rel="noopener" class="btn-whatsapp flex-1 !py-3" data-track="whatsapp">WhatsApp</a>
+    <a href={telLink(s.phone)} class="btn-primary flex-1 !py-3" data-track="call">Call shop</a>
+  </Fragment>
 </Layout>
 )}
 

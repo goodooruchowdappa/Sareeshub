@@ -43,6 +43,10 @@
   }
   h1, h2, h3 {
     @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   :focus-visible {
     outline: 2px solid var(--color-zari-500);
@@ -79,18 +83,18 @@
     @apply rounded-2xl border border-line bg-white shadow-[var(--shadow-card)];
 }
 @utility chip {
-    @apply inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium
+    @apply inline-flex min-h-8 items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-[13px] font-medium sm:min-h-0 sm:text-xs
       text-ink transition hover:border-brand-200 hover:bg-brand-50;
 }
 @utility chip-active {
     @apply border-brand-700 bg-brand-700 text-white hover:bg-brand-800;
 }
 @utility input {
-    @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition
+    @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink outline-none transition sm:text-sm
       placeholder:text-muted/70 focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
 }
 @utility label {
-    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-muted;
+    @apply mb-1.5 block text-sm font-medium text-ink;
 }
 @utility badge {
     @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold;
@@ -133,4 +137,11 @@
 /* Keep anchored sections (#reviews, #sarees) clear of the sticky header */
 [id] {
   scroll-margin-top: 5.5rem;
+}
+
+/* Horizontal scrollers (chips, cards) on small screens */
+@utility scroller {
+    @apply -mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 min-[380px]:-mx-4 min-[380px]:scroll-px-4 min-[380px]:px-4;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
 }

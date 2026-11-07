@@ -101,7 +101,7 @@ export default function SellerApp() {
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zari-700">{kindLabel(s.kind)} · {s.city}</p>
+          <p className="text-sm font-medium text-zari-700">{kindLabel(s.kind)} · {s.city}</p>
           <h1 className="text-2xl leading-tight sm:truncate sm:text-3xl">{s.name}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -148,7 +148,7 @@ export default function SellerApp() {
         {tab === "plan" && <Billing data={data} me={me} reload={reload} flash={flash} />}
       </div>
 
-      {toast && <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg" role="status">{toast}</div>}
+      {toast && <div className="fixed bottom-24 left-1/2 z-[80] md:bottom-5 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg" role="status">{toast}</div>}
     </div>
   );
 }

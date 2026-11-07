@@ -118,7 +118,7 @@ export default function TagPicker({ value, onChange, max, label, hint, categorie
         <div className="mt-3 max-h-72 space-y-3 overflow-y-auto pr-1">
           {groups.map((g) => (
             <div key={g.value}>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{g.label}</p>
+              <p className="mb-1 text-xs font-semibold text-muted">{g.label}</p>
               <div className="flex flex-wrap gap-1.5">
                 {g.tags.map((t) => (
                   <button type="button" key={t.id} onClick={() => toggle(t)} className={`chip ${chosen.has(t.id) ? "chip-active" : ""}`} aria-pressed={chosen.has(t.id)}>
