@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { rpc, supabase } from "../../lib/supabase";
 import { getSession, signInWithGoogle } from "../../lib/session";
+import { flushNotifications } from "../../lib/checkout";
 import { GoogleIcon } from "./AccountMenu";
 
 type MyReview = { id: string; rating: number; comment: string | null; hidden: boolean } | null;
@@ -36,6 +37,7 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
     setMsg(null);
     try {
       const r = await rpc<MyReview>(supabase(), "upsert_review", { p_shop: shopId, p_rating: rating, p_comment: comment });
+      flushNotifications();
       setMine(r);
       setOpen(false);
       setMsg({ ok: true, text: "Thanks! Your review is live. It may take a couple of minutes to appear for everyone." });

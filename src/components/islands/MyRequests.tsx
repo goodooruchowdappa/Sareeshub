@@ -64,6 +64,7 @@ export default function MyRequests() {
             {status.quota == null ? "Unlimited requests" : `${status.remaining} of ${status.quota} request${status.quota === 1 ? "" : "s"} left`}
             {status.ends_at && ` · until ${dateIN(status.ends_at)}`}
           </p>
+          <p className="mt-1 text-xs text-muted">A request that gets no replies doesn't use up your allowance.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn-outline" onClick={() => setShowPlans((v) => !v)}>{showPlans ? "Hide plans" : "Plans"}</button>

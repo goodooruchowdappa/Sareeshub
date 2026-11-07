@@ -36,6 +36,7 @@ export default function RequestForm() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [paidMsg, setPaidMsg] = useState<string | null>(null);
+  const [reach, setReach] = useState<{ sellers: number; instant: number; nearest_km: number | null } | null>(null);
 
   useEffect(() => {
     requireSession().then(async (s) => {
@@ -45,6 +46,15 @@ export default function RequestForm() {
       setStatus(st);
     });
   }, []);
+
+  useEffect(() => {
+    if (!place) return setReach(null);
+    let live = true;
+    rpc<{ sellers: number; instant: number; nearest_km: number | null }>(supabase(), "request_reach", {
+      p_lat: place.lat, p_lng: place.lng, p_radius_km: f.radius === "0" ? null : Number(f.radius),
+    }).then((r) => live && setReach(r)).catch(() => {});
+    return () => { live = false; };
+  }, [place, f.radius]);
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF((o) => ({ ...o, [k]: e.target.value }));
@@ -176,6 +186,19 @@ export default function RequestForm() {
             {RADII.map((r) => <option key={r.km} value={r.km}>{r.label}</option>)}
           </select>
         </div>
+        {reach && (
+          reach.sellers > 0 ? (
+            <p className="rounded-xl bg-leaf-50 px-3 py-2 text-sm text-leaf" data-testid="reach">
+              ✓ Will reach <strong>{reach.sellers}</strong> verified {reach.sellers === 1 ? "seller" : "sellers"}
+              {reach.instant > 0 && reach.instant < reach.sellers && ` (${reach.instant} instantly, the rest within a few hours)`}.
+            </p>
+          ) : (
+            <p className="rounded-xl bg-zari-100 px-3 py-2 text-sm text-zari-700" data-testid="reach">
+              No sellers take requests within this distance yet{reach.nearest_km != null && ` — the nearest is ${Math.round(reach.nearest_km)} km away`}.
+              Choose a larger distance or “Anywhere”.
+            </p>
+          )
+        )}
         <p className="text-xs text-muted">
           Your request goes only to verified shops and weavers in this area whose plan includes custom requests.
           Your phone number and email are never shared — you contact the sellers you like from their replies.
@@ -184,7 +207,7 @@ export default function RequestForm() {
 
       {err && <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800" role="alert">{err}</p>}
       <div className="sticky bottom-0 z-10 -mx-3 border-t border-line bg-cream/95 px-3 py-3 backdrop-blur min-[380px]:-mx-4 min-[380px]:px-4 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-        <button className="btn-primary w-full sm:w-auto" disabled={busy}>{busy ? "Sending…" : "Send request to sellers"}</button>
+        <button className="btn-primary w-full sm:w-auto" disabled={busy || reach?.sellers === 0}>{busy ? "Sending…" : "Send request to sellers"}</button>
       </div>
     </form>
   );

@@ -462,7 +462,9 @@ describe("custom saree requests", () => {
     expect((await call(SELLER, "me")).unread).toBeGreaterThan(0);
     // Kanchipuram (~280 km) is outside the 50 km radius, free plan seller gets no ping
     expect((await call(SELLER2, "my_notifications")).items.filter((n: any) => n.kind === "request_new")).toHaveLength(0);
-    expect((await call(FREE, "my_notifications")).items).toHaveLength(0);
+    const fn = (await call(FREE, "my_notifications")).items;
+    expect(fn.filter((n: any) => n.kind === "request_new")).toHaveLength(0);
+    expect(fn[0].kind).toBe("shop_approved");
   });
 
   it("gives paid sellers a head start; free sellers see it later as a teaser", async () => {
@@ -582,5 +584,103 @@ describe("custom saree requests", () => {
     await expect(call(BUYER, "notifications_to_email")).rejects.toThrow(/permission denied/);
     const mail = await call("service", "notifications_to_email", {});
     expect(Array.isArray(mail)).toBe(true);
+  });
+});
+
+describe("real-world: listings, reports, claims, alerts, fair requests", () => {
+  const OWNER = { id: "", email: "realowner@example.com" };
+  let listed = "";
+
+  it("alerts admins about new applications and sellers about reviews", async () => {
+    const r = await db.query(`insert into auth.users (email) values ($1) returning id`, [OWNER.email]);
+    OWNER.id = r.rows[0].id;
+    const s = await call(OWNER, "create_shop", {
+      p: { name: "Owner Applied Shop", kind: "shop", phone: "9440099999", city: "Hindupur", lat: 13.83, lng: 77.49, photos: [] },
+    });
+    const n = await call(ADMIN, "my_notifications");
+    expect(n.items.some((x: any) => x.kind === "shop_pending" && x.body.includes("Owner Applied Shop"))).toBe(true);
+    await call(ADMIN, "admin_set_shop_status", { p_shop: s.id, p_status: "rejected", p_note: "Add a shop photo" });
+    expect((await call(OWNER, "my_notifications")).items[0]).toMatchObject({ kind: "shop_rejected", body: "Add a shop photo" });
+    await call(BUYER, "upsert_review", { p_shop: shopId, p_rating: 5, p_comment: "Lovely" });
+    expect((await call(SELLER, "my_notifications")).items.some((x: any) => x.kind === "review_new")).toBe(true);
+  });
+
+  it("lets admin list a shop that goes live as 'listed by Sarees Hub' and gets no requests", async () => {
+    const r = await call(ADMIN, "admin_create_shop", {
+      p: { name: "Old Town Silks", kind: "shop", phone: "9000011111", city: "Dharmavaram", lat: 14.415, lng: 77.72, photos: [] },
+      p_claim_email: "later.owner@example.com",
+    });
+    listed = r.id;
+    expect(r.status).toBe("approved");
+    const pub = await call(null, "get_shop", { p_slug: r.slug });
+    expect(pub.shop.unclaimed).toBe(true);
+    await expect(call(BUYER, "create_shop", { p: {} })).rejects.toThrow(/required/);
+    // no admin noise for shops the admin lists
+    expect((await call(ADMIN, "my_notifications")).items.filter((x: any) => x.body?.includes("Old Town Silks"))).toHaveLength(0);
+  });
+
+  it("hands the listing over when the owner signs in with that email", async () => {
+    const r = await db.query(`insert into auth.users (email) values ('later.owner@example.com') returning id`);
+    const LATER = { id: r.rows[0].id, email: "later.owner@example.com" };
+    const me = await call(LATER, "me");
+    expect(me.shops.map((s: any) => s.id)).toContain(listed);
+    expect((await call(LATER, "my_notifications")).items[0].kind).toBe("shop_claimed");
+    const s = await call(LATER, "my_shop", { p_shop: listed });
+    expect(s.shop.unclaimed).toBe(false);
+  });
+
+  it("takes reports and claim requests into an admin queue", async () => {
+    await expect(call(null, "report_shop", { p_shop: shopId, p_reason: "closed" })).rejects.toThrow(/permission denied/);
+    await expect(call(BUYER, "report_shop", { p_shop: shopId, p_reason: "fake" })).rejects.toThrow(/few words/);
+    await call(BUYER, "report_shop", { p_shop: shopId, p_reason: "wrong_phone", p_details: "Number not reachable" });
+    await call(BUYER, "report_shop", { p_shop: shopId, p_reason: "wrong_phone", p_details: "Still not reachable" }); // no duplicate
+    await call(OWNER, "report_shop", { p_shop: shopId, p_reason: "claim", p_details: "I am the owner" });
+    const q = await call(ADMIN, "admin_reports", { p_status: "open" });
+    expect(q.filter((x: any) => x.shop.id === shopId)).toHaveLength(2);
+    expect(q[0].same_shop_open).toBe(2);
+    await expect(call(BUYER, "admin_reports", {})).rejects.toThrow(/Only admins/);
+    const rep = q.find((x: any) => x.reason === "wrong_phone");
+    await call(ADMIN, "admin_resolve_report", { p_id: rep.id, p_status: "resolved", p_note: "Seller updated phone" });
+    expect((await call(ADMIN, "admin_reports", { p_status: "open" })).some((x: any) => x.id === rep.id)).toBe(false);
+    expect((await call(ADMIN, "my_notifications")).items.some((x: any) => x.kind === "shop_claim")).toBe(true);
+  });
+
+  it("transfers a shop to a verified owner", async () => {
+    const t = await call(ADMIN, "admin_transfer_shop", { p_shop: shopId, p_email: OWNER.email });
+    expect(t.transferred).toBe(true);
+    expect((await call(OWNER, "me")).shops.some((s: any) => s.id === shopId)).toBe(true);
+    expect((await call(ADMIN, "admin_reports", { p_status: "open" })).some((x: any) => x.reason === "claim")).toBe(false);
+    await call(ADMIN, "admin_transfer_shop", { p_shop: shopId, p_email: SELLER.email }); // give it back for later tests
+  });
+
+  it("shows request reach and refuses requests nobody would receive", async () => {
+    const near = await call(BUYER, "request_reach", { p_lat: 14.42, p_lng: 77.71, p_radius_km: 50 });
+    expect(near.sellers).toBeGreaterThan(0);
+    const far = await call(BUYER, "request_reach", { p_lat: 28.6, p_lng: 77.2, p_radius_km: 10 });
+    expect(far.sellers).toBe(0);
+    expect(Number(far.nearest_km)).toBeGreaterThan(1000);
+    await expect(
+      call(BUYER, "create_request", { p: { title: "Saree in Delhi", description: "Anything nice", city: "Delhi", lat: 28.6, lng: 77.2, radius_km: 10 } }),
+    ).rejects.toThrow(/No sellers take custom requests/);
+  });
+
+  it("gives the allowance back when nobody replied", async () => {
+    const C = { id: "", email: "carefulbuyer@example.com" };
+    C.id = (await db.query(`insert into auth.users (email) values ($1) returning id`, [C.email])).rows[0].id;
+    const r = await call(C, "create_request", { p: { title: "Gadwal saree", description: "Simple one", city: "Dharmavaram", lat: 14.42, lng: 77.71, radius_km: 50 } });
+    expect((await call(C, "my_buyer_status")).remaining).toBe(0);
+    // closed straight away → still counts (stops spam)
+    await call(C, "close_request", { p_id: r.id });
+    expect((await call(C, "my_buyer_status")).remaining).toBe(0);
+    // expired with no replies → refunded
+    await db.query(`update public.custom_requests set status = 'open', closed_at = null, expires_at = now() - interval '1 minute' where id = $1`, [r.id]);
+    const st = await call(C, "my_buyer_status");
+    expect(st).toMatchObject({ remaining: 1, refunded: 1 });
+  });
+
+  it("finds the nearest shops when an area is empty", async () => {
+    const n = await call(null, "nearest_shops", { p_lat: 28.6, p_lng: 77.2, p_limit: 3 });
+    expect(n).toHaveLength(3);
+    expect(n[0].distance_km).toBeLessThanOrEqual(n[1].distance_km);
   });
 });
