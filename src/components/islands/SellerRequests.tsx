@@ -54,13 +54,13 @@ export default function SellerRequests({ shopId, goPlan, flash }: { shopId: stri
         <div className="min-w-0">
           <p className="font-semibold">Custom saree requests near you</p>
           {st.quota == null ? (
-            <p className="text-sm text-muted">{st.plan_name} plan: unlimited requests, and you see new ones {st.head_start_hours} hours before Free sellers.</p>
+            <p className="text-sm text-muted">{st.plan_name} plan: unlimited requests{st.head_start_hours > 0 ? `, and you see new ones ${st.head_start_hours} hours before Free sellers` : ", notified the moment they're posted"}.</p>
           ) : st.quota === 0 ? (
             <p className="text-sm text-muted">Your plan doesn't include custom requests.</p>
           ) : (
             <>
               <p className="text-sm text-muted" data-testid="lead-quota">
-                {st.plan_name} plan: <strong className="text-ink">{left} of {st.quota}</strong> requests left this month · new requests reach you after {st.head_start_hours} hours
+                {st.plan_name} plan: <strong className="text-ink">{left} of {st.quota}</strong> requests left this month{st.head_start_hours > 0 && ` · new requests reach you after ${st.head_start_hours} hours`}
               </p>
               <div className="mt-2 h-2 w-full max-w-xs overflow-hidden rounded-full bg-sand">
                 <div className="h-full rounded-full bg-brand-600" style={{ width: `${Math.min(100, (st.used / Math.max(st.quota, 1)) * 100)}%` }} />
