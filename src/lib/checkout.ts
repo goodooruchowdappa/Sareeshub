@@ -34,10 +34,10 @@ export async function api<T>(path: string, body: unknown): Promise<T> {
 }
 
 /** Opens Razorpay Checkout for a plan. Resolves when the payment is verified and the plan is active. */
-export async function buyPlan(shopId: string, planCode: string, prefill: { name?: string; email?: string; contact?: string }) {
+export async function buyPlan(shopId: string | null, planCode: string, prefill: { name?: string; email?: string; contact?: string }) {
   const order = await api<{ order_id: string; key_id: string; amount: number; currency: string; description: string }>(
     "/api/pay/order",
-    { shop_id: shopId, plan_code: planCode },
+    { shop_id: shopId ?? undefined, plan_code: planCode },
   );
   await loadRazorpay();
   const Razorpay = (window as unknown as { Razorpay: RazorpayCtor }).Razorpay;
@@ -51,7 +51,7 @@ export async function buyPlan(shopId: string, planCode: string, prefill: { name?
       description: order.description,
       image: `${location.origin}/icons/icon-192.png`,
       prefill,
-      notes: { shop_id: shopId, plan_code: planCode },
+      notes: { shop_id: shopId ?? undefined, plan_code: planCode },
       theme: { color: "#2f4938" },
       retry: { enabled: true },
       handler: async (resp: RazorpayResponse) => {
@@ -69,4 +69,9 @@ export async function buyPlan(shopId: string, planCode: string, prefill: { name?
     });
     rz.open();
   });
+}
+
+/** Asks the server to e-mail any queued notifications (no-op unless e-mail is configured). Fire-and-forget. */
+export function flushNotifications() {
+  api("/api/notify", {}).catch(() => {});
 }

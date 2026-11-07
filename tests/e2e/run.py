@@ -358,6 +358,157 @@ with sync_playwright() as p:
         assert "/shops/lakshmi-pattu-weaving-centre-dharmavaram-" in page.content(), page.content()[:500]
     _()
 
+    # ───────────── Custom saree requests ─────────────
+    RZP_STUB = """window.Razorpay = function (o) {
+      this.on = function () {};
+      this.open = function () {
+        fetch('%s/__test/pay?order_id=' + o.order_id).then(function (r) { return r.json(); }).then(function (r) { o.handler(r); });
+      };
+    };""" % MOCK
+    for c in (ctx, seller_ctx):
+        c.route("https://checkout.razorpay.com/**", lambda route: route.fulfill(status=200, content_type="application/javascript", body=RZP_STUB))
+
+    def rpc(tok, fn, args=None):
+        return get(f"{MOCK}/rest/v1/rpc/{fn}", "POST", args or {}, {"Authorization": f"Bearer {tok}"})
+
+    @step("Custom request: signing in is required first")
+    def _():
+        anon = browser.new_context()
+        a = anon.new_page()
+        a.goto(APP + "/requests")
+        expect(a.locator("h1")).to_contain_text("Nearby weavers will reply")
+        shot(a, "20-requests-landing")
+        a.get_by_role("link", name="Request a custom saree").first.click()
+        a.wait_for_url(re.compile(r"/login\?next=%2Frequests%2Fnew"))
+        anon.close()
+    _()
+
+    @step("Buyer sends a custom request: photo, saree type, colour, budget, current location")
+    def _():
+        page.goto(APP + "/requests/new")
+        expect(page.get_by_test_id("quota")).to_contain_text("1 of 1 request left", timeout=10000)
+        page.fill("#rq-title", "Maroon pure pattu with broad gold zari border")
+        photo = os.path.abspath(os.path.join(SHOTS, "..", "ref.jpg"))
+        make_photo(photo, "#5f1721")
+        page.locator("input[type=file]").first.set_input_files(photo)
+        expect(page.locator("img[src*='/requests/']")).to_have_count(1, timeout=15000)
+        page.get_by_role("button", name="Pure Pattu", exact=True).first.click()
+        page.get_by_role("button", name="Maroon", exact=True).click()
+        page.get_by_role("button", name="₹8k–20k").click()
+        page.fill("#rq-desc", "For my sister's wedding in January. Blouse needed.")
+        page.get_by_role("button", name="📍 Use my current location").click()
+        expect(page.get_by_test_id("place-label")).to_contain_text("Dharmavaram", timeout=10000)
+        shot(page, "21-request-form")
+        page.get_by_role("button", name="Send request to sellers").click()
+        page.wait_for_url(re.compile(r"/account/requests\?id="), timeout=15000)
+        expect(page.locator("text=Request sent ✓")).to_be_visible()
+        expect(page.locator("text=₹8,000 – ₹20,000")).to_be_visible()
+        page.wait_for_timeout(800)
+        mails = get(f"{MOCK}/__test/mails")[1]
+        to = {m["to"] for m in mails}
+        assert "lakshmi.weaves@example.com" in to and "demo-seller@example.com" in to, mails  # nearby Pro shops
+        shot(page, "22-request-sent")
+    _()
+
+    @step("Free allowance used → buyer buys a Request Pass with Razorpay")
+    def _():
+        page.goto(APP + "/requests/new")
+        expect(page.locator("text=You've used your Free allowance")).to_be_visible(timeout=10000)
+        shot(page, "23-buyer-plans")
+        page.locator("[data-plan=buyer_pass]").get_by_role("button").click()
+        expect(page.locator("text=Payment successful")).to_be_visible(timeout=15000)
+        expect(page.get_by_test_id("quota")).to_contain_text("5 of 5 requests left")
+        tok = json.loads(page.evaluate("localStorage.getItem('sb-localhost-auth-token')"))["access_token"]
+        st, order = get(f"{APP}/api/pay/order", "POST", {"plan_code": "pro"}, {"Authorization": f"Bearer {tok}"})
+        assert st == 400, (st, order)  # seller plans still need a shop
+    _()
+
+    @step("Pro seller is notified, opens the request and replies with photo and price")
+    def _():
+        sp.goto(APP + "/seller")
+        expect(sp.get_by_test_id("bell")).to_have_attribute("aria-label", re.compile("unread"), timeout=10000)
+        sp.get_by_test_id("bell").click()
+        expect(sp.locator("text=New custom saree request near you").first).to_be_visible()
+        sp.goto(APP + "/seller?tab=requests")
+        card = sp.get_by_test_id("seller-request").first
+        expect(card).to_contain_text("Maroon pure pattu", timeout=10000)
+        card.get_by_role("button", name="Open & reply").click()
+        expect(card.locator("text=For my sister's wedding")).to_be_visible()
+        photo = os.path.abspath(os.path.join(SHOTS, "..", "reply.jpg"))
+        make_photo(photo, "#7a1f2b")
+        card.locator("input[type=file]").set_input_files(photo)
+        expect(card.locator("img[src*='/replies/']")).to_have_count(1, timeout=15000)
+        card.locator("textarea").fill("We have this exact border in pure Dharmavaram pattu. Blouse included, courier free.")
+        card.get_by_label("Your price (₹)").fill("14500")
+        card.get_by_label("Ready in (days)").fill("0")
+        shot(sp, "24-seller-reply-mobile")
+        card.get_by_role("button", name="Send reply").click()
+        expect(sp.locator("text=Reply sent")).to_be_visible(timeout=10000)
+        expect(card.locator("text=Your reply · Sent")).to_be_visible()
+    _()
+
+    @step("Buyer sees the reply, shortlists it and can WhatsApp the seller")
+    def _():
+        page.goto(APP + "/account/requests")
+        expect(page.locator("text=1 new")).to_be_visible(timeout=10000)
+        page.locator("button", has_text="Maroon pure pattu").click()
+        reply = page.get_by_test_id("reply").first
+        expect(reply).to_contain_text("₹14,500")
+        expect(reply).to_contain_text("Ready now")
+        wa = urllib.parse.unquote(reply.locator("a", has_text="WhatsApp").get_attribute("href"))
+        assert "wa.me/91" in wa and "Maroon pure pattu" in wa, wa
+        reply.get_by_role("button", name="☆ Shortlist").click()
+        expect(reply.get_by_role("button", name="★ Shortlisted")).to_be_visible()
+        shot(page, "25-buyer-replies")
+    _()
+
+    @step("Plan-based routing: Free shop waits for the head start, then gets 3 unlocks")
+    def _():
+        demo = session("demo-seller@example.com", "Ravi Kumar")["access_token"]
+        me = rpc(demo, "me")[1]
+        ravi = next(s for s in me["shops"] if s["name"] == "Ravi Handloom Weavers")["id"]
+        lakshmi = next(s for s in me["shops"] if s["name"] == "Sri Lakshmi Pattu Sarees")["id"]
+        mine = lambda items: [x for x in items if x["title"].startswith("Maroon pure pattu")]
+        assert len(mine(rpc(demo, "seller_requests", {"p_shop": lakshmi})[1]["items"])) == 1
+        free = rpc(demo, "seller_requests", {"p_shop": ravi})[1]
+        assert free["status"]["quota"] == 3 and mine(free["items"]) == [], free
+        # admin removes the head start from the Requests tab
+        ap.goto(APP + "/admin?tab=requests")
+        expect(ap.locator("text=Maroon pure pattu").first).to_be_visible(timeout=10000)
+        ap.fill("#set-head_start_hours", "0")
+        ap.get_by_role("button", name="Save rules").click()
+        expect(ap.locator("text=Settings saved")).to_be_visible()
+        free = rpc(demo, "seller_requests", {"p_shop": ravi})[1]
+        assert len(mine(free["items"])) == 1 and "description" not in mine(free["items"])[0], free
+        login(sp, session("demo-seller@example.com", "Ravi Kumar"))
+        sp.goto(APP + f"/seller?shop={ravi}&tab=requests")
+        expect(sp.get_by_test_id("lead-quota")).to_contain_text("of 3", timeout=10000)
+        expect(sp.get_by_role("button", name=re.compile(r"Open & reply \(uses 1 of \d\)")).first).to_be_visible()
+        shot(sp, "26-free-seller-requests-mobile")
+    _()
+
+    @step("Admin moderates requests and edits request allowances per plan")
+    def _():
+        ap.goto(APP + "/admin?tab=requests")
+        ap.locator("button", has_text="Maroon pure pattu").click()
+        expect(ap.get_by_role("dialog")).to_contain_text("We have this exact border")
+        shot(ap, "27-admin-request")
+        ap.get_by_role("button", name="Close", exact=True).first.click()
+        ap.goto(APP + "/admin?tab=plans")
+        row = ap.locator("[data-plan-row=free]")
+        expect(row).to_contain_text("3/month")
+        row.get_by_role("button", name="Edit").click()
+        ap.fill("#pl-lead", "5")
+        ap.get_by_role("button", name="Save plan").click()
+        expect(ap.locator("[data-plan-row=free]")).to_contain_text("5/month", timeout=10000)
+        expect(ap.locator("[data-plan-row=buyer_pass]")).to_contain_text("5 requests")
+        shot(ap, "28-admin-plans")
+        ap.locator("[data-plan-row=free]").get_by_role("button", name="Edit").click()
+        ap.fill("#pl-lead", "3")
+        ap.get_by_role("button", name="Save plan").click()
+        expect(ap.locator("[data-plan-row=free]")).to_contain_text("3/month", timeout=10000)
+    _()
+
     if errors:
         results.append(("No uncaught browser errors", "FAIL", " | ".join(errors)[:600]))
         print("FAIL  browser errors:", errors[:5])

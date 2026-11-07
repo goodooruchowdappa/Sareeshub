@@ -48,3 +48,21 @@ export const truncate = (s: string | null | undefined, n: number) =>
 
 export const dateIN = (d: string | Date | null | undefined) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+
+const inr0 = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+/** "₹8,000 – ₹15,000", "Up to ₹5,000", "From ₹2,000" or "Open budget". */
+export function budgetLabel(min: number | null | undefined, max: number | null | undefined) {
+  if (min && max) return min === max ? inr0(min) : `${inr0(min)} – ${inr0(max)}`;
+  if (max) return `Up to ${inr0(max)}`;
+  if (min) return `From ${inr0(min)}`;
+  return "Open budget";
+}
+
+export function timeAgo(d: string | Date) {
+  const s = Math.max(0, (Date.now() - new Date(d).getTime()) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  if (s < 86400 * 7) return `${Math.floor(s / 86400)} d ago`;
+  return dateIN(d);
+}

@@ -83,6 +83,7 @@ async function rpc(fn, args, ident) {
 // ── Fake Razorpay state ──
 const orders = new Map();
 const payments = new Map();
+const mails = [];
 function rzpAuth(req) {
   return req.headers.authorization === `Basic ${Buffer.from(`${RZP.id}:${RZP.secret}`).toString("base64")}`;
 }
@@ -225,6 +226,14 @@ http
         const signature = crypto.createHmac("sha256", RZP.secret).update(`${o.id}|${p.id}`).digest("hex");
         return send(res, 200, { razorpay_order_id: o.id, razorpay_payment_id: p.id, razorpay_signature: signature, payment: p });
       }
+      // ── Resend (e-mail) ──
+      if (path === "/resend/emails/batch" && req.method === "POST") {
+        if (req.headers.authorization !== "Bearer local-resend-key") return send(res, 401, { message: "bad key" });
+        const b = JSON.parse((await readBody(req)).toString());
+        mails.push(...b);
+        return send(res, 200, { data: b.map((_, i) => ({ id: `mail_${mails.length + i}` })) });
+      }
+      if (path === "/__test/mails") return send(res, 200, mails.map((m) => ({ to: m.to[0], subject: m.subject })));
       if (path === "/__test/stats") {
         const r = await pool.query("select coalesce(sum(calls),0)::int as calls, coalesce(sum(views),0)::int as views from public.shop_daily_stats");
         return send(res, 200, r.rows[0]);

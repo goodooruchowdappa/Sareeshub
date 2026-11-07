@@ -13,6 +13,9 @@ Find saree shops, handloom weavers, co-op societies, wholesalers and showrooms o
 | Google sign-in to review shops and save favourites | Lead stats: views, calls, WhatsApp, directions (30 days) | Edit plans & prices, record offline UPI payments |
 | | Reply to reviews; edits to name/location go for review | Payments list + CSV export, team (add admins by email) |
 | | Buy Pro / yearly plans with Razorpay (UPI, cards, netbanking) | Overview: pending, revenue, leads |
+| **Custom saree requests:** upload reference photos, pick saree type, colours, budget, date and distance (sign-in required) | **Custom requests tab:** see requests near you, open one, reply with your photos, price and ready-in days | Moderate requests and replies |
+| Free: 1 request / 30 days; Request Pass ₹49 (5) and Request Plus ₹149 (unlimited, 90 days) via Razorpay | Free plan: 3 requests a month, seen after a 2-hour head start; Pro/yearly: unlimited, notified instantly | Set each plan's request allowance in **Plans**; reply cap, expiry, head start in **Custom requests → Request rules** |
+| Replies with photos and prices; shortlist, call or WhatsApp; phone number stays private | Notification bell (+ optional e-mail) for new requests and shortlists | Buyer passes appear in Payments |
 
 SEO: server-rendered pages with titles, descriptions, canonical URLs, Open Graph/Twitter cards, JSON-LD (`ClothingStore`, `Product`, `BreadcrumbList`, `FAQPage`, `WebSite` search), `sitemap.xml`, `robots.txt`, web manifest and icons. Collection pages (e.g. `/collections/pure-pattu`) target searches like “pure pattu sarees near me”.
 
@@ -66,9 +69,15 @@ SEO: server-rendered pages with titles, descriptions, canonical URLs, Open Graph
 
 Until Razorpay is set up, sellers see “Online payments aren't switched on yet”, and you can record UPI/cash payments from **Admin → shop → Grant plan**.
 
+### 4b. E-mail alerts (optional)
+New requests and replies always show in the bell inside the site. To also e-mail them, create a free [Resend](https://resend.com) account (3,000 mails/month), verify your domain `sareeshub.in`, and add the secret `RESEND_API_KEY` (and optionally the variable `EMAIL_FROM`, e.g. `Sarees Hub <alerts@sareeshub.in>`) in Cloudflare.
+
+### Already ran `setup.sql` before custom requests were added?
+Run only [`supabase/migrations/20261107000004_custom_requests.sql`](supabase/migrations/20261107000004_custom_requests.sql) in the SQL Editor. It is safe to run on top of the existing database and keeps your data.
+
 ### 5. Keep-alive and CI (GitHub)
 - Repository **Settings → Secrets and variables → Actions → Variables:** add `SITE_URL` = `https://yourdomain.in`. The *Keep Supabase awake* workflow then pings `/api/health` twice a week.
-- `CI` runs type checks, the 29 database security tests, and the build on every push.
+- `CI` runs type checks, the 39 database tests, and the build on every push.
 - Optional `deploy.yml` deploys on push to `main` if you add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets plus the `PUBLIC_*` variables (skip it if you used Cloudflare's Git import).
 
 ### 6. After launch
@@ -90,10 +99,10 @@ Add `http://localhost:4321/auth/callback` to Supabase redirect URLs to test Goog
 
 ```sh
 npm run check             # TypeScript / Astro
-npm run test:db           # 29 database tests: security rules, approvals, plan limits, payments, reviews, tags
+npm run test:db           # 39 database tests: security rules, approvals, plan limits, payments, reviews, tags, custom requests
 ```
 
-`tests/e2e/run.py` drives Chrome through 19 real flows (map, search, reviews, seller registration on a phone with GPS pin and photo upload, admin approval, change requests, saree upload, Razorpay order → signature → activation → webhook). It runs against a local Postgres plus a mock of Supabase/Photon/Razorpay — see [`tests/README.md`](tests/README.md).
+`tests/e2e/run.py` drives Chrome through 26 real flows (custom saree requests with plan-based routing, buyer passes and seller replies, map, search, reviews, seller registration on a phone with GPS pin and photo upload, admin approval, change requests, saree upload, Razorpay order → signature → activation → webhook). It runs against a local Postgres plus a mock of Supabase/Photon/Razorpay — see [`tests/README.md`](tests/README.md).
 
 ## How the code is organised
 

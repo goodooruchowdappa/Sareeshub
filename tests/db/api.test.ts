@@ -415,3 +415,172 @@ describe("leads, favourites, storage", () => {
     expect((await call(null, "get_tag", { p_slug: "pure-pattu" })).sarees).toBe(15);
   });
 });
+
+describe("custom saree requests", () => {
+  const FREE = { id: "", email: "freeseller@example.com" };
+  let freeShop = "";
+  let reqId = "";
+  const req = (over: Record<string, unknown> = {}) => ({
+    title: "Pure pattu bridal saree in maroon",
+    description: "Like the photo, with a broad zari border",
+    min_price: 8000, max_price: 15000, colors: ["Maroon", "Gold"],
+    images: [`${BUYER.id}/req-1.webp`], tag_ids: [tagIds["pure-pattu"]],
+    city: "Dharmavaram", state: "Andhra Pradesh", lat: 14.42, lng: 77.71, radius_km: 50, ...over,
+  });
+
+  beforeAll(async () => {
+    const r = await db.query(`insert into auth.users (email) values ($1) returning id`, [FREE.email]);
+    FREE.id = r.rows[0].id;
+    const s = await call(FREE, "create_shop", {
+      p: { name: "Ravi Handlooms", kind: "weaver", phone: "9440012345", city: "Dharmavaram", lat: 14.43, lng: 77.73, photos: [] },
+    });
+    freeShop = s.id;
+    await call(ADMIN, "admin_set_shop_status", { p_shop: freeShop, p_status: "approved" });
+  });
+
+  it("needs a signed-in buyer, a location and something to go on", async () => {
+    await expect(call(null, "create_request", { p: req() })).rejects.toThrow(/permission denied/);
+    await expect(call(BUYER, "create_request", { p: req({ lat: null, city: "" }) })).rejects.toThrow(/city/);
+    await expect(call(BUYER, "create_request", { p: req({ images: [`${SELLER.id}/x.webp`] }) })).rejects.toThrow(/Invalid photo/);
+    await expect(call(BUYER, "create_request", { p: req({ min_price: 9000, max_price: 100 }) })).rejects.toThrow(/maximum/);
+    await expect(
+      call(BUYER, "create_request", { p: req({ images: [], tag_ids: [], description: "" }) }),
+    ).rejects.toThrow(/reference photo/);
+  });
+
+  it("uses the free allowance, then asks for a plan", async () => {
+    expect((await call(BUYER, "my_buyer_status")).remaining).toBe(1);
+    const r = await call(BUYER, "create_request", { p: req() });
+    reqId = r.id;
+    expect(r.status.remaining).toBe(0);
+    await expect(call(BUYER, "create_request", { p: req({ title: "Another one" }) })).rejects.toThrow(/Choose a plan/);
+  });
+
+  it("notifies only nearby unlimited-plan sellers straight away", async () => {
+    const n1 = await call(SELLER, "my_notifications");
+    expect(n1.items.some((n: any) => n.kind === "request_new")).toBe(true);
+    expect((await call(SELLER, "me")).unread).toBeGreaterThan(0);
+    // Kanchipuram (~280 km) is outside the 50 km radius, free plan seller gets no ping
+    expect((await call(SELLER2, "my_notifications")).items.filter((n: any) => n.kind === "request_new")).toHaveLength(0);
+    expect((await call(FREE, "my_notifications")).items).toHaveLength(0);
+  });
+
+  it("gives paid sellers a head start; free sellers see it later as a teaser", async () => {
+    const paid = await call(SELLER, "seller_requests", { p_shop: shopId });
+    expect(paid.status.quota).toBeNull();
+    expect(paid.items).toHaveLength(1);
+    expect(paid.items[0].description).toBeUndefined(); // locked until opened
+    expect((await call(FREE, "seller_requests", { p_shop: freeShop })).items).toHaveLength(0);
+    const kanchiShop = (await call(ADMIN, "admin_shops", { p_q: "Kanchi" })).items[0].id;
+    expect((await call(SELLER2, "seller_requests", { p_shop: kanchiShop })).items).toHaveLength(0);
+    await db.query(`update public.custom_requests set created_at = now() - interval '3 hours'`);
+    const free = await call(FREE, "seller_requests", { p_shop: freeShop });
+    expect(free.items).toHaveLength(1);
+    expect(free.status).toMatchObject({ quota: 3, used: 0 });
+    await expect(call(BUYER, "seller_requests", { p_shop: freeShop })).rejects.toThrow(/Shop not found/);
+  });
+
+  it("caps free sellers at 3 unlocks a month", async () => {
+    // give the buyer an unlimited pass via a Razorpay order (no shop involved)
+    const prep = await call("service", "payment_prepare", { p_user: BUYER.id, p_shop: null, p_plan: "buyer_plus" });
+    expect(prep).toMatchObject({ amount_paise: 14900, audience: "buyer" });
+    await call("service", "payment_record_order", {
+      p_user: BUYER.id, p_shop: null, p_plan: "buyer_plus", p_amount_paise: 14900, p_order_id: "order_BUYER1",
+    });
+    const paid = await call("service", "payment_mark_paid", { p_order_id: "order_BUYER1", p_payment_id: "pay_b1", p_amount_paise: 14900 });
+    expect(paid.already).toBe(false);
+    const st = await call(BUYER, "my_buyer_status");
+    expect(st).toMatchObject({ plan_code: "buyer_plus", quota: null });
+    expect((await call(BUYER, "my_buyer_payments"))[0].status).toBe("paid");
+    for (let i = 2; i <= 4; i++) await call(BUYER, "create_request", { p: req({ title: `Request number ${i}` }) });
+    await db.query(`update public.custom_requests set created_at = now() - interval '3 hours'`);
+    const list = (await call(FREE, "seller_requests", { p_shop: freeShop })).items;
+    expect(list).toHaveLength(4);
+    for (const it of list.slice(0, 3)) await call(FREE, "unlock_request", { p_shop: freeShop, p_request: it.id });
+    await expect(call(FREE, "unlock_request", { p_shop: freeShop, p_request: list[3].id })).rejects.toThrow(/Upgrade/);
+    // re-opening one already unlocked is free
+    await call(FREE, "unlock_request", { p_shop: freeShop, p_request: list[0].id });
+    const after = await call(FREE, "seller_requests", { p_shop: freeShop });
+    expect(after.status.used).toBe(3);
+    expect(after.items.find((x: any) => x.unlocked).description).toBeTruthy();
+  });
+
+  it("lets admins change the free allowance", async () => {
+    const plans = await call(ADMIN, "admin_plans");
+    const free = plans.find((p: any) => p.code === "free");
+    await call(ADMIN, "admin_save_plan", { p: { ...free, lead_quota: 0 } });
+    expect((await call(FREE, "seller_requests", { p_shop: freeShop })).items.filter((x: any) => !x.unlocked)).toHaveLength(0);
+    await call(ADMIN, "admin_save_plan", { p: { ...free, lead_quota: 3 } });
+    expect((await call(null, "list_plans", { p_audience: "buyer" })).map((p: any) => p.code)).toEqual([
+      "buyer_free", "buyer_pass", "buyer_plus",
+    ]);
+  });
+
+  it("sends replies with photos and price to the buyer only", async () => {
+    await expect(
+      call(SELLER, "respond_request", { p_shop: shopId, p_request: reqId, p: { message: "We have it" } }),
+    ).rejects.toThrow(/Open the request/);
+    await call(SELLER, "unlock_request", { p_shop: shopId, p_request: reqId });
+    await expect(
+      call(SELLER, "respond_request", { p_shop: shopId, p_request: reqId, p: { message: "Hi", images: [`${BUYER.id}/a.webp`] } }),
+    ).rejects.toThrow(/Invalid photo/);
+    await call(SELLER, "respond_request", {
+      p_shop: shopId, p_request: reqId,
+      p: { message: "We can weave this in 3 weeks", price_inr: 12500, ready_in_days: 21, images: [`${SELLER.id}/reply-1.webp`] },
+    });
+    const n = await call(BUYER, "my_notifications");
+    expect(n.items[0]).toMatchObject({ kind: "response_new", link: `/account/requests?id=${reqId}` });
+    const mine = await call(BUYER, "my_requests");
+    expect(mine.find((r: any) => r.id === reqId)).toMatchObject({ responses: 1, unseen: 1 });
+    const full = await call(BUYER, "get_request", { p_id: reqId });
+    expect(full.responses[0]).toMatchObject({ price_inr: 12500, ready_in_days: 21 });
+    expect(full.responses[0].shop.phone).toBeTruthy();
+    expect(full.request.user_id).toBeUndefined();
+    await expect(call(SELLER2, "get_request", { p_id: reqId })).rejects.toThrow(/not found/);
+    expect((await call(BUYER, "my_requests")).find((r: any) => r.id === reqId).unseen).toBe(0);
+  });
+
+  it("lets the buyer shortlist and close, and the seller hears about it", async () => {
+    const full = await call(BUYER, "get_request", { p_id: reqId });
+    await call(BUYER, "set_response_status", { p_response: full.responses[0].id, p_status: "shortlisted" });
+    expect((await call(SELLER, "my_notifications")).items[0].kind).toBe("response_shortlisted");
+    await expect(call(SELLER, "set_response_status", { p_response: full.responses[0].id, p_status: "declined" })).rejects.toThrow(/not found/);
+    await call(BUYER, "close_request", { p_id: reqId, p_reason: "Found my saree" });
+    await expect(
+      call(SELLER, "respond_request", { p_shop: shopId, p_request: reqId, p: { message: "Update" } }),
+    ).rejects.toThrow(/closed/);
+    await call(BUYER, "mark_notifications_read");
+    expect((await call(BUYER, "me")).unread).toBe(0);
+  });
+
+  it("caps replies per request and lets admins moderate", async () => {
+    await call(ADMIN, "admin_save_settings", { p: { max_responses_per_request: 1 } });
+    const open = (await call(FREE, "seller_requests", { p_shop: freeShop })).items.find((x: any) => x.unlocked);
+    await call(SELLER, "unlock_request", { p_shop: shopId, p_request: open.id });
+    await call(SELLER, "respond_request", { p_shop: shopId, p_request: open.id, p: { message: "Available now" } });
+    await expect(
+      call(FREE, "respond_request", { p_shop: freeShop, p_request: open.id, p: { message: "Me too" } }),
+    ).rejects.toThrow(/enough replies/);
+    await expect(call(ADMIN, "admin_save_settings", { p: { nope: 1 } })).rejects.toThrow(/Unknown setting/);
+    await call(ADMIN, "admin_save_settings", { p: { max_responses_per_request: 10 } });
+    const list = await call(ADMIN, "admin_requests", {});
+    expect(list.total).toBe(4);
+    const r = await call(ADMIN, "get_request", { p_id: open.id });
+    await call(ADMIN, "admin_set_response_hidden", { p_id: r.responses[0].id, p_hidden: true });
+    expect((await call(BUYER, "get_request", { p_id: open.id })).responses).toHaveLength(0);
+    await call(ADMIN, "admin_set_request_status", { p_id: open.id, p_status: "hidden", p_note: "Spam" });
+    expect((await call(SELLER, "seller_requests", { p_shop: shopId })).items.find((x: any) => x.id === open.id)).toBeUndefined();
+    await expect(call(BUYER, "admin_requests", {})).rejects.toThrow(/Only admins/);
+    const ov = await call(ADMIN, "admin_overview");
+    expect(ov.paid_buyers).toBe(1);
+    expect((await call(ADMIN, "admin_payments", {})).items.some((p: any) => p.shop_name === "Buyer plan")).toBe(true);
+  });
+
+  it("keeps the new tables private", async () => {
+    await expect(asRole(BUYER, "select * from public.custom_requests")).rejects.toThrow(/permission denied/);
+    await expect(asRole(SELLER, "select * from public.notifications")).rejects.toThrow(/permission denied/);
+    await expect(call(BUYER, "notifications_to_email")).rejects.toThrow(/permission denied/);
+    const mail = await call("service", "notifications_to_email", {});
+    expect(Array.isArray(mail)).toBe(true);
+  });
+});

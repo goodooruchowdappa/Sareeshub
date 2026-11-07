@@ -6,7 +6,7 @@ type Props = {
   value: string[];
   onChange: (v: string[]) => void;
   max: number;
-  folder: "shops" | "sarees";
+  folder: "shops" | "sarees" | "requests" | "replies";
   label: string;
   hint?: string;
 };

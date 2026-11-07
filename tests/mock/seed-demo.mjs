@@ -84,5 +84,23 @@ await db.query(`insert into public.reviews (shop_id, user_id, rating, comment, s
 // one pending application for the admin queue
 await db.query(`insert into public.shops (owner_id, slug, name, kind, phone, city, state, lat, lng, photos, status, tagline)
   values ($1, 'new-weaver-gadwal', 'Gadwal Sico Weavers', 'weaver', '+91 90000 22222', 'Gadwal', 'Telangana', 16.2350, 77.7956, $2, 'pending', 'Gadwal sico and pure silk') on conflict do nothing`, [owner, [await shopImg("shop-pending", "#7f5b15")]]);
+// a custom saree request from Priya with two seller replies (for screenshots/preview)
+{
+  const req = (await db.query(`insert into public.custom_requests (user_id, title, description, min_price, max_price, colors, images, city, state, lat, lng, radius_km, needed_by, created_at)
+    values ($1, 'Pure pattu bridal saree like this, in rani pink', 'Wedding in December. Broad zari border, contrast pallu, blouse needed.', 12000, 25000, '{Pink,Gold}', $2, 'Dharmavaram', 'Andhra Pradesh', 14.415, 77.721, 150, current_date + 40, now() - interval '5 hours') returning id`,
+    [buyers[0], [await img("req-1", ["#a63446", "#c8962e", "#f5dde0"])]])).rows[0].id;
+  await db.query("insert into public.request_tags select $1, id from public.tags where slug in ('pure-pattu','bridal')", [req]);
+  const sh = (await db.query("select id, name from public.shops where status = 'approved' and city = 'Dharmavaram' order by created_at")).rows;
+  const replies = [
+    ["Yes madam, we have 3 rani pink pure pattu sarees with broad zari border. Blouse included. Come and see, or we can video call.", 18500, 0],
+    ["We can weave this on our loom in your exact shade with a contrast pallu. 3 weeks.", 21000, 21],
+  ];
+  for (const [i, s2] of sh.slice(0, 2).entries()) {
+    await db.query("insert into public.request_unlocks (request_id, shop_id) values ($1,$2) on conflict do nothing", [req, s2.id]);
+    await db.query("insert into public.request_responses (request_id, shop_id, message, price_inr, ready_in_days, images) values ($1,$2,$3,$4,$5,$6) on conflict do nothing",
+      [req, s2.id, replies[i][0], replies[i][1], replies[i][2], [await img(`reply-${i}`, palettes[i])]]);
+    await db.query("select public.notify($1, 'response_new', $2 || ' replied to your request', $3, '/account/requests?id=' || $4)", [buyers[0], s2.name, replies[i][0].slice(0, 100), req]);
+  }
+}
 console.log(`seeded ${shops.length} shops, ${n} sarees`);
 await db.end();

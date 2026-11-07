@@ -1,0 +1,73 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { load } from "../../lib/server";
+import type { Plan } from "../../lib/types";
+const { data: plans } = await load<Plan[]>("list_plans", { p_audience: "buyer" });
+const faq = [
+  ["Who sees my request?", "Only verified (admin-approved) saree shops and handloom weavers inside the distance you choose, and only those whose seller plan includes custom requests. It is never sent to everyone."],
+  ["Is my phone number shared?", "No. Sellers see your request, photos, budget and city — not your phone number or email. You decide whom to call or WhatsApp from their replies."],
+  ["How much does it cost?", "Your first request every 30 days is free. For weddings and festival shopping you can buy a Request Pass (5 requests for 30 days) or Request Plus (unlimited for 90 days). One-time payments via Razorpay, no auto-renewal."],
+  ["Do I pay for the saree on Sarees Hub?", "No. You buy directly from the seller you pick, the way you normally would. Confirm the price, delivery and return terms with them before paying."],
+  ["How many replies will I get?", "It depends on your area and budget. Each request takes up to 10 replies so the best ones aren't buried. Requests stay open for 30 days, or until you close them."],
+  ["What if nobody nearby has it?", "Choose “Anywhere — weavers can ship” and handloom weavers across India can reply, including from Kanchipuram, Banaras, Dharmavaram and Pochampally."],
+];
+---
+<Layout
+  title="Custom saree order — get quotes from shops and weavers near you"
+  description="Upload a photo of the saree you want, set your budget and get replies with photos and prices from verified saree shops and handloom weavers near you. First request free."
+  path="/requests"
+  jsonLd={[{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }]}
+>
+  <section class="border-b border-line bg-gradient-to-br from-brand-700 via-brand-800 to-brand-900 text-cream">
+    <div class="container-x grid gap-8 py-12 sm:py-14 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zari-300">Custom saree request</p>
+        <h1 class="mt-3 text-4xl leading-tight sm:text-5xl">Show us the saree. Nearby weavers will reply.</h1>
+        <p class="mt-4 max-w-xl text-lg text-cream/80">Upload a reference photo, choose the type and your budget. Verified shops and handloom weavers near you reply with their own photos, price and how soon it's ready.</p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <a href="/requests/new" class="btn-gold !px-6 !py-3 text-base">Request a custom saree</a>
+          <a href="/account/requests" class="btn border border-cream/30 text-cream hover:bg-white/10">My requests</a>
+        </div>
+        <p class="mt-3 text-sm text-cream/70">First request every 30 days is free · Sign in with Google · Your number stays private</p>
+      </div>
+      <ol class="grid gap-3 sm:grid-cols-2">
+        {[
+          ["📸", "Share what you want", "Reference photos, fabric & weave tags, colours, budget and date."],
+          ["📍", "Sent to sellers nearby", "Only verified shops within your distance whose plan includes requests."],
+          ["💬", "Get photo replies", "Sellers send matching sarees with price and ready-by days."],
+          ["🤝", "Pick & buy directly", "Shortlist, then call or WhatsApp the seller you like."],
+        ].map(([i, t, d]) => (
+          <li class="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"><span class="text-2xl">{i}</span><p class="mt-1 font-semibold">{t}</p><p class="text-sm text-cream/70">{d}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="bg-sand/60 py-14" id="plans">
+    <div class="container-x">
+      <h2 class="text-3xl">Plans for buyers</h2>
+      <p class="mt-1 text-muted">One-time payment via Razorpay (UPI, cards, netbanking). Prices include GST. No auto-renewal.</p>
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        {(plans ?? []).map((p) => (
+          <div class:list={["card flex flex-col p-6", p.code === "buyer_pass" && "ring-2 ring-zari-500"]}>
+            <p class="font-display text-2xl">{p.name}</p>
+            <p class="mt-1 text-sm text-muted">{p.description}</p>
+            <p class="mt-4"><span class="font-display text-4xl text-brand-800">₹{p.price_inr.toLocaleString("en-IN")}</span><span class="text-sm text-muted"> / {p.duration_days} days</span></p>
+            <ul class="mt-4 flex-1 space-y-2 text-sm">{p.features.map((f) => <li class="flex gap-2"><span class="text-leaf">✓</span>{f}</li>)}</ul>
+            <a href="/requests/new" class:list={["mt-6", p.price_inr === 0 ? "btn-primary" : "btn-outline"]}>{p.price_inr === 0 ? "Start free" : `Choose ${p.name}`}</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x py-14">
+    <h2 class="text-3xl">Questions</h2>
+    <div class="mt-6 divide-y divide-line rounded-2xl border border-line bg-white">
+      {faq.map(([q, a]) => (
+        <details class="group p-5"><summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold">{q}<span class="text-muted transition group-open:rotate-45">+</span></summary><p class="mt-2 text-sm text-muted">{a}</p></details>
+      ))}
+    </div>
+    <p class="mt-6 text-sm text-muted">Are you a seller? <a class="underline" href="/sell">List your shop</a> to receive custom requests from buyers near you.</p>
+  </section>
+</Layout>

@@ -10,6 +10,7 @@ export const GET: APIRoute = () =>
       "Disallow: /seller",
       "Disallow: /account",
       "Disallow: /login",
+      "Disallow: /requests/new",
       "Disallow: /auth/",
       "Disallow: /api/",
       "",

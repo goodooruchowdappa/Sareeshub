@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { signInWithGoogle, signOut, useMe } from "../../lib/session";
+import { rpc, supabase } from "../../lib/supabase";
+import { timeAgo } from "../../lib/format";
+import type { Notification } from "../../lib/types";
 
 export default function AccountMenu() {
   const { me, ready } = useMe();
@@ -23,6 +26,8 @@ export default function AccountMenu() {
 
   const initials = (me.full_name || me.email || "?").trim().slice(0, 1).toUpperCase();
   return (
+    <div className="flex items-center gap-1.5">
+    <Bell initial={me.unread ?? 0} />
     <div className="relative" ref={ref}>
       <button
         type="button"
@@ -49,6 +54,7 @@ export default function AccountMenu() {
             <p className="truncate text-xs text-muted">{me.email}</p>
           </div>
           <MenuLink href="/account">Saved shops & reviews</MenuLink>
+          <MenuLink href="/account/requests">My custom requests</MenuLink>
           {me.shops.length > 0 ? (
             <MenuLink href="/seller">Seller dashboard</MenuLink>
           ) : (
@@ -58,6 +64,70 @@ export default function AccountMenu() {
           <button type="button" role="menuitem" onClick={signOut} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-sand">
             Sign out
           </button>
+        </div>
+      )}
+    </div>
+    </div>
+  );
+}
+
+function Bell({ initial }: { initial: number }) {
+  const [unread, setUnread] = useState(initial);
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<Notification[] | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => setUnread(initial), [initial]);
+  useEffect(() => {
+    const close = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, []);
+
+  async function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next) return;
+    try {
+      const r = await rpc<{ unread: number; items: Notification[] }>(supabase(), "my_notifications", { p_limit: 20 });
+      setItems(r.items);
+      if (r.unread > 0) {
+        await rpc(supabase(), "mark_notifications_read");
+        setUnread(0);
+      }
+    } catch {
+      setItems([]);
+    }
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={toggle} aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"} aria-expanded={open}
+              className="relative grid h-9 w-9 place-items-center rounded-full text-cream hover:bg-white/10" data-testid="bell">
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+          <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+        </svg>
+        {unread > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-zari-500 px-1 text-[10px] font-bold text-white">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="card fixed inset-x-2 top-16 z-[60] max-h-[70vh] overflow-auto p-1 text-sm text-ink sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
+          <p className="border-b border-line px-3 py-2 font-semibold">Notifications</p>
+          {items === null ? (
+            <div className="m-3 h-12 animate-pulse rounded-lg bg-sand" />
+          ) : items.length === 0 ? (
+            <p className="px-3 py-6 text-center text-muted">You're all caught up.</p>
+          ) : (
+            items.map((n) => (
+              <a key={n.id} href={n.link ?? "#"} className={`block rounded-lg px-3 py-2 hover:bg-sand ${n.read ? "" : "bg-brand-50"}`}>
+                <p className="font-medium">{n.title}</p>
+                {n.body && <p className="line-clamp-2 text-xs text-muted">{n.body}</p>}
+                <p className="mt-0.5 text-[11px] text-muted">{timeAgo(n.created_at)}</p>
+              </a>
+            ))
+          )}
         </div>
       )}
     </div>

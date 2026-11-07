@@ -37,6 +37,10 @@ export default defineConfig({
       RAZORPAY_KEY_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
       RAZORPAY_WEBHOOK_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
       RAZORPAY_API_BASE: envField.string({ context: "server", access: "public", default: "https://api.razorpay.com" }),
+      // Optional e-mail alerts for custom requests (resend.com free tier: 3,000 mails/month).
+      RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      EMAIL_FROM: envField.string({ context: "server", access: "public", default: "Sarees Hub <alerts@sareeshub.in>" }),
+      RESEND_API_BASE: envField.string({ context: "server", access: "public", default: "https://api.resend.com" }),
     },
   },
 });
