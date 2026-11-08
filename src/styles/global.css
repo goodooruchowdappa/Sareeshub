@@ -1,36 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colours from the original Sarees Hub (Lovable) "Woven counter" design: paper, ink, zari gold, forest green */
-  --color-brand-50: #eff8f2;
-  --color-brand-100: #ddede2;
-  --color-brand-200: #c0d8c7;
-  --color-brand-500: #557c62;
-  --color-brand-600: #40614b;
-  --color-brand-700: #2f4938;
-  --color-brand-800: #24382b;
-  --color-brand-900: #17261c;
-  --color-zari-100: #f7ecd6;
-  --color-zari-300: #e6b374;
-  --color-zari-500: #b0792a;
-  --color-zari-600: #956725;
-  --color-zari-700: #78521c;
-  --color-peacock-50: #eff8f2;
-  --color-peacock-500: #557c62;
-  --color-peacock-700: #2f4938;
-  --color-cream: #f9f5ee;
-  --color-sand: #f0ebdf;
-  --color-line: #e3dccd;
-  --color-ink: #18130e;
-  --color-muted: #655c52;
-  --color-leaf: #40614b;
-  --color-leaf-50: #eff8f2;
+  /* ── SareesHub Design System 2.0 ── */
+  /* Primary: forest green | Accent: zari gold | Background: warm beige */
 
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, ui-serif, serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
-    sans-serif;
+  --color-green-50:  #eef5f0;
+  --color-green-100: #d6eadc;
+  --color-green-200: #aed3bb;
+  --color-green-500: #2a6b4a;
+  --color-green-600: #235c3e;
+  --color-green-700: #1e5038;
+  --color-green-800: #183f2c;
+  --color-green-900: #112e1f;
 
-  --shadow-card: 0 1px 2px rgb(24 19 14 / 0.06), 0 10px 28px -14px rgb(24 19 14 / 0.22);
+  --color-gold-100: #fdf3d6;
+  --color-gold-300: #f5c842;
+  --color-gold-500: #c8922a;
+  --color-gold-600: #a87522;
+  --color-gold-700: #8a5e1a;
+
+  /* Keep old aliases so existing pages don't break */
+  --color-brand-50:  #eef5f0;
+  --color-brand-100: #d6eadc;
+  --color-brand-200: #aed3bb;
+  --color-brand-500: #2a6b4a;
+  --color-brand-600: #235c3e;
+  --color-brand-700: #1e5038;
+  --color-brand-800: #183f2c;
+  --color-brand-900: #112e1f;
+  --color-zari-100: #fdf3d6;
+  --color-zari-300: #f5c842;
+  --color-zari-500: #c8922a;
+  --color-zari-600: #a87522;
+  --color-zari-700: #8a5e1a;
+  --color-leaf: #2a6b4a;
+  --color-leaf-50: #eef5f0;
+
+  --color-cream: #f0ebe0;
+  --color-sand:  #e8e1d2;
+  --color-line:  rgba(0,0,0,.09);
+  --color-ink:   #1a1a1a;
+  --color-muted: #7a7a7a;
+
+  --font-display: 'Playfair Display', 'Georgia', ui-serif, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.06);
+  --shadow-md:   0 4px 20px rgba(0,0,0,.10);
 }
 
 @layer base {
@@ -42,85 +58,96 @@
     @apply bg-cream text-ink font-sans antialiased;
   }
   h1, h2, h3 {
-    @apply font-display tracking-tight;
+    font-family: var(--font-display);
+    tracking: tight;
     text-wrap: balance;
   }
-  p {
-    text-wrap: pretty;
-  }
+  p { text-wrap: pretty; }
   :focus-visible {
-    outline: 2px solid var(--color-zari-500);
+    outline: 2px solid var(--color-green-500);
     outline-offset: 2px;
   }
-  [hidden] {
-    display: none !important;
-  }
+  [hidden] { display: none !important; }
 }
 
+/* ── Layout helpers ── */
 @utility container-x {
-    @apply mx-auto w-full max-w-7xl px-3 min-[380px]:px-4 sm:px-6 lg:px-8;
+  @apply mx-auto w-full max-w-7xl px-3 min-[380px]:px-4 sm:px-6 lg:px-8;
 }
+
+/* ── Buttons ── */
 @utility btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
-      disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+    disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-    @apply btn bg-gradient-to-b from-brand-600 to-brand-700 text-white shadow-sm shadow-brand-900/20 hover:from-brand-700 hover:to-brand-800;
+  @apply btn bg-green-500 text-white shadow-sm hover:bg-green-600;
 }
 @utility btn-gold {
-    @apply btn bg-gradient-to-b from-zari-300 to-zari-500 text-brand-900 shadow-sm shadow-zari-700/20 hover:from-zari-500 hover:to-zari-600;
+  @apply btn bg-gold-300 text-ink shadow-sm hover:bg-gold-500 hover:text-white;
 }
 @utility btn-outline {
-    @apply btn border border-line bg-white text-ink hover:border-brand-200 hover:bg-brand-50;
+  @apply btn border border-green-500 text-green-500 bg-white hover:bg-green-50;
 }
 @utility btn-ghost {
-    @apply btn text-ink hover:bg-sand;
+  @apply btn text-ink hover:bg-sand;
 }
 @utility btn-whatsapp {
-    @apply btn bg-[#1f8f4e] text-white hover:bg-[#187540];
-}
-@utility card {
-    @apply rounded-2xl border border-line bg-white shadow-[var(--shadow-card)];
-}
-@utility chip {
-    @apply inline-flex min-h-8 items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-[13px] font-medium sm:min-h-0 sm:text-xs
-      text-ink transition hover:border-brand-200 hover:bg-brand-50;
-}
-@utility chip-active {
-    @apply border-brand-700 bg-brand-700 text-white hover:bg-brand-800;
-}
-@utility input {
-    @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink outline-none transition sm:text-sm
-      placeholder:text-muted/70 focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
-}
-@utility label {
-    @apply mb-1.5 block text-sm font-medium text-ink;
-}
-@utility badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold;
+  @apply btn bg-[#1f8f4e] text-white hover:bg-[#187540];
 }
 
+/* ── Cards ── */
+@utility card {
+  @apply rounded-2xl border border-line bg-white shadow-[var(--shadow-card)];
+}
+
+/* ── Chips / filter pills ── */
+@utility chip {
+  @apply inline-flex min-h-8 items-center gap-1 rounded-full border border-green-200 bg-white px-3 py-1 text-[13px] font-medium sm:min-h-0 sm:text-xs
+    text-ink transition hover:border-green-500 hover:bg-green-50;
+}
+@utility chip-active {
+  @apply border-green-500 bg-green-500 text-white hover:bg-green-600;
+}
+
+/* ── Inputs ── */
+@utility input {
+  @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base text-ink outline-none transition sm:text-sm
+    placeholder:text-muted/70 focus:border-green-500 focus:ring-2 focus:ring-green-100;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-ink;
+}
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold;
+}
+
+/* ── Horizontal scroller ── */
+@utility scroller {
+  @apply -mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 min-[380px]:-mx-4 min-[380px]:scroll-px-4 min-[380px]:px-4;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* ── Decorative ── */
 @layer components {
   .zari-rule {
-    background: linear-gradient(90deg, transparent, var(--color-zari-500) 20%, var(--color-zari-300) 50%, var(--color-zari-500) 80%, transparent);
+    background: linear-gradient(90deg, transparent, var(--color-gold-500) 20%, var(--color-gold-300) 50%, var(--color-gold-500) 80%, transparent);
     height: 2px;
   }
   .border-pattern {
     background-image: repeating-linear-gradient(
       90deg,
-      var(--color-brand-700) 0 10px,
-      var(--color-zari-500) 10px 14px,
-      var(--color-brand-700) 14px 24px,
-      var(--color-zari-300) 24px 26px
+      var(--color-green-700) 0 10px,
+      var(--color-gold-500) 10px 14px,
+      var(--color-green-700) 14px 24px,
+      var(--color-gold-300) 24px 26px
     );
   }
 }
 
-/* MapLibre controls blend with the theme */
-.maplibregl-ctrl-group {
-  border-radius: 12px !important;
-  overflow: hidden;
-}
+/* MapLibre */
+.maplibregl-ctrl-group { border-radius: 12px !important; overflow: hidden; }
 .maplibregl-popup-content {
   border-radius: 14px !important;
   padding: 0 !important;
@@ -134,14 +161,4 @@
   }
 }
 
-/* Keep anchored sections (#reviews, #sarees) clear of the sticky header */
-[id] {
-  scroll-margin-top: 5.5rem;
-}
-
-/* Horizontal scrollers (chips, cards) on small screens */
-@utility scroller {
-    @apply -mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 min-[380px]:-mx-4 min-[380px]:scroll-px-4 min-[380px]:px-4;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
-}
+[id] { scroll-margin-top: 5.5rem; }

@@ -42,10 +42,10 @@ const jsonLd = [
 <Layout title={`${SITE.name} — ${SITE.tagline}`} description={SITE.description} path="/" jsonLd={jsonLd}>
   {!data ? <ServiceDown /> : (
     <>
-      <section class="relative overflow-hidden border-b border-line bg-[radial-gradient(ellipse_at_top_right,var(--color-zari-100),transparent_55%),linear-gradient(to_bottom,var(--color-sand),var(--color-cream))]">
+      <section class="relative overflow-hidden border-b border-line bg-[radial-gradient(ellipse_60%_50%_at_90%_20%,var(--color-gold-100),transparent_60%),linear-gradient(to_bottom,var(--color-sand),var(--color-cream))]">
         <div class="container-x relative grid gap-10 pb-8 pt-7 sm:py-14 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div class="min-w-0">
-            <h1 class="text-[2.1rem] leading-[1.08] text-brand-900 min-[380px]:text-4xl sm:text-5xl lg:text-6xl">
+            <h1 class="text-[2.1rem] leading-[1.08] text-green-900 min-[380px]:text-4xl sm:text-5xl lg:text-6xl">
               Every saree shop and weaver, on one map.
             </h1>
             <p class="mt-3 max-w-xl text-base text-muted sm:mt-4 sm:text-lg">
@@ -77,7 +77,7 @@ const jsonLd = [
                   <img src={mediaUrl(p.image, "thumb") ?? undefined} alt="" width="360" height="480" class="aspect-[3/4] w-full rounded-lg bg-sand object-cover" loading="eager" />
                 </figure>
               ))}
-              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink px-4 py-1.5 text-sm font-semibold text-cream shadow">
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-green-800 px-4 py-1.5 text-sm font-semibold text-white shadow">
                 {data.stats.sarees.toLocaleString("en-IN")} sarees from {data.stats.shops.toLocaleString("en-IN")} sellers
               </span>
             </a>
@@ -88,7 +88,7 @@ const jsonLd = [
       <section class="container-x pt-6 sm:pt-8" aria-label="Browse">
         <div class="scroller sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {SHOP_KINDS.slice(0, 3).map((k) => (
-            <a href={`/map?kind=${k.value}`} class="chip shrink-0 snap-start !border-brand-200 !bg-brand-50 !py-1.5 !text-sm !text-brand-800">{k.plural}</a>
+            <a href={`/map?kind=${k.value}`} class="chip shrink-0 snap-start !border-green-200 !bg-green-50 !py-1.5 !text-sm !text-green-800">{k.plural}</a>
           ))}
           {data.tags.slice(0, 14).map((t) => <a class="chip shrink-0 snap-start !py-1.5 !text-sm" href={`/collections/${t.slug}`}>{t.name}</a>)}
         </div>
@@ -100,7 +100,7 @@ const jsonLd = [
             <h2 id="feat-h" class="text-2xl sm:text-3xl">Shops & weavers</h2>
             <p class="text-sm text-muted sm:text-base">Photos, reviews and directions for every seller.</p>
           </div>
-          <a href="/map" class="shrink-0 text-sm font-semibold text-brand-700 hover:underline">See all on map</a>
+          <a href="/map" class="shrink-0 text-sm font-semibold text-green-600 hover:underline">See all on map</a>
         </div>
         {data.featured.length === 0 ? (
           <div class="card mt-6 p-8 text-center">
@@ -122,7 +122,7 @@ const jsonLd = [
               <h2 id="new-h" class="text-2xl sm:text-3xl">Just added</h2>
               <p class="text-sm text-muted sm:text-base">New sarees from shops and looms.</p>
             </div>
-            <a href="/sarees?sort=newest" class="shrink-0 text-sm font-semibold text-brand-700 hover:underline">Browse all</a>
+            <a href="/sarees?sort=newest" class="shrink-0 text-sm font-semibold text-green-600 hover:underline">Browse all</a>
           </div>
           <div class="mt-4 grid grid-cols-2 gap-x-3 gap-y-5 sm:mt-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-6 max-sm:[&>*:nth-child(n+7)]:hidden">
             {data.latest.map((p) => <ProductCardC product={p} />)}
@@ -132,10 +132,10 @@ const jsonLd = [
       )}
 
       <section class="container-x pt-10 sm:pt-14" aria-labelledby="custom-h">
-        <div class="grid gap-4 overflow-hidden rounded-2xl border border-zari-300 bg-zari-100/60 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
+        <div class="grid gap-4 overflow-hidden rounded-2xl bg-green-600 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
           <div class="min-w-0">
-            <h2 id="custom-h" class="text-2xl">Can't find the exact saree?</h2>
-            <p class="mt-1 max-w-2xl text-muted">Send a photo and your budget. Shops and weavers near you reply with their own photos and prices. Your first request is free.</p>
+            <h2 id="custom-h" class="text-2xl text-white">Can't find the exact saree?</h2>
+            <p class="mt-1 max-w-2xl text-white/75">Send a photo and your budget. Shops and weavers near you reply with their own photos and prices. Your first request is free.</p>
           </div>
           <a href="/requests/new" class="btn-primary !py-3">Request a custom saree</a>
         </div>
@@ -150,7 +150,7 @@ const jsonLd = [
             { t: "Visit or order", d: "Get directions, or ask them to courier. Then leave a review for other buyers." },
           ].map((s, i) => (
             <li class="flex gap-4 rounded-2xl border border-line bg-white p-4 sm:p-5 md:flex-col md:gap-2">
-              <span class="font-display text-4xl leading-none text-zari-500 md:text-5xl">{i + 1}</span>
+              <span class="font-display text-4xl leading-none text-green-500 md:text-5xl">{i + 1}</span>
               <div>
                 <h3 class="text-lg sm:text-xl">{s.t}</h3>
                 <p class="mt-0.5 text-sm text-muted">{s.d}</p>
@@ -161,10 +161,10 @@ const jsonLd = [
       </section>
 
       <section class="container-x pt-10 sm:pt-14">
-        <div class="flex flex-col gap-4 rounded-2xl bg-ink p-6 text-cream sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <div class="flex flex-col gap-4 rounded-2xl bg-green-800 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
-            <h2 class="text-2xl text-cream">Own a saree shop or loom?</h2>
-            <p class="mt-1 text-cream/75">List your shop free. Buyers nearby find you on the map and call you directly.</p>
+            <h2 class="text-2xl text-white">Own a saree shop or loom?</h2>
+            <p class="mt-1 text-white/70">List your shop free. Buyers nearby find you on the map and call you directly.</p>
           </div>
           <a href="/seller/register" class="btn-gold shrink-0 !py-3">Register your shop</a>
         </div>

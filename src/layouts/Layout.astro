@@ -57,7 +57,7 @@ const year = new Date().getFullYear();
   <body class:list={[app ? "flex h-dvh flex-col overflow-hidden" : "min-h-dvh flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"]}>
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
     <div class="border-pattern h-1.5 w-full" aria-hidden="true"></div>
-    <header class="sticky top-0 z-50 border-b border-zari-500/40 bg-ink text-cream shadow-lg">
+    <header class="sticky top-0 z-50 border-b border-green-700/40 bg-green-700 text-white shadow-lg">
       <div class:list={["flex h-16 items-center gap-2 sm:gap-3", app ? "px-3 sm:px-5" : "container-x"]}>
         <a href="/" aria-label="Sarees Hub home" class="shrink-0"><Logo dark /></a>
         <nav class="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
@@ -65,8 +65,8 @@ const year = new Date().getFullYear();
             <a
               href={n.href}
               class:list={[
-                "rounded-lg px-3 py-2 text-sm font-medium text-cream/85 hover:bg-white/10 hover:text-cream",
-                path.startsWith(n.href) && "bg-white/10 !text-zari-300",
+                "rounded-lg px-3 py-2 text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white",
+                path.startsWith(n.href) && "bg-white/10 !text-gold-300",
               ]}
               aria-current={path.startsWith(n.href) ? "page" : undefined}
             >
@@ -76,7 +76,7 @@ const year = new Date().getFullYear();
         </nav>
         <form action="/sarees" method="get" role="search" class="ml-auto hidden max-w-xs flex-1 lg:block">
           <label class="sr-only" for="hdr-q">Search sarees</label>
-          <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !border-white/15 !bg-white/10 !py-2 !text-cream placeholder:!text-cream/50 focus:!border-zari-300 focus:!ring-zari-500/30" />
+          <input id="hdr-q" name="q" type="search" placeholder="Search pure pattu, Kanchipuram…" class="input !rounded-full !border-white/20 !bg-white/15 !py-2 !text-white placeholder:!text-white/55 focus:!border-gold-300 focus:!ring-gold-300/20" />
         </form>
         <div class="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-2">
           <AccountMenu client:idle />
@@ -98,44 +98,44 @@ const year = new Date().getFullYear();
     </main>
 
     {!app && !hideFooter && (
-      <footer class="mt-16 border-t border-line bg-sand/60">
+      <footer class="mt-16 border-t border-green-800 bg-green-800">
         <div class="container-x grid grid-cols-2 gap-x-4 gap-y-8 py-10 lg:grid-cols-4">
           <div class="col-span-2 lg:col-span-1">
-            <Logo />
-            <p class="mt-3 max-w-xs text-sm text-muted">{SITE.tagline}. Talk to sellers directly — no middlemen, no commission.</p>
+            <Logo dark />
+            <p class="mt-3 max-w-xs text-sm text-white/60">{SITE.tagline}. Talk to sellers directly — no middlemen, no commission.</p>
           </div>
           <div>
-            <h2 class="font-sans text-sm font-semibold text-ink">For buyers</h2>
-            <ul class="mt-3 space-y-2 text-sm">
-              <li><a class="hover:underline" href="/map">Saree shops near me</a></li>
-              <li><a class="hover:underline" href="/map?kind=weaver">Handloom weavers</a></li>
-              <li><a class="hover:underline" href="/collections/pure-pattu">Pure pattu sarees</a></li>
-              <li><a class="hover:underline" href="/collections/kanchipuram">Kanchipuram sarees</a></li>
+            <h2 class="font-sans text-sm font-semibold text-white">For buyers</h2>
+            <ul class="mt-3 space-y-2 text-sm text-white/65">
+              <li><a class="hover:text-white hover:underline" href="/map">Saree shops near me</a></li>
+              <li><a class="hover:text-white hover:underline" href="/map?kind=weaver">Handloom weavers</a></li>
+              <li><a class="hover:text-white hover:underline" href="/collections/pure-pattu">Pure pattu sarees</a></li>
+              <li><a class="hover:text-white hover:underline" href="/collections/kanchipuram">Kanchipuram sarees</a></li>
             </ul>
           </div>
           <div>
-            <h2 class="font-sans text-sm font-semibold text-ink">For sellers</h2>
-            <ul class="mt-3 space-y-2 text-sm">
-              <li><a class="hover:underline" href="/sell">Why list with us</a></li>
-              <li><a class="hover:underline" href="/seller/register">Register your shop — free</a></li>
-              <li><a class="hover:underline" href="/sell#plans">Plans & pricing</a></li>
-              <li><a class="hover:underline" href="/seller">Seller dashboard</a></li>
+            <h2 class="font-sans text-sm font-semibold text-white">For sellers</h2>
+            <ul class="mt-3 space-y-2 text-sm text-white/65">
+              <li><a class="hover:text-white hover:underline" href="/sell">Why list with us</a></li>
+              <li><a class="hover:text-white hover:underline" href="/seller/register">Register your shop — free</a></li>
+              <li><a class="hover:text-white hover:underline" href="/sell#plans">Plans & pricing</a></li>
+              <li><a class="hover:text-white hover:underline" href="/seller">Seller dashboard</a></li>
             </ul>
           </div>
           <div>
-            <h2 class="font-sans text-sm font-semibold text-ink">Company</h2>
-            <ul class="mt-3 space-y-2 text-sm">
-              <li><a class="hover:underline" href="/about">About</a></li>
-              <li><a class="hover:underline" href="/contact">Contact</a></li>
-              <li><a class="hover:underline" href="/terms">Terms</a> · <a class="hover:underline" href="/privacy">Privacy</a></li>
-              <li><a class="hover:underline" href="/refund-policy">Refunds</a> · <a class="hover:underline" href="/shipping-policy">Delivery</a></li>
+            <h2 class="font-sans text-sm font-semibold text-white">Company</h2>
+            <ul class="mt-3 space-y-2 text-sm text-white/65">
+              <li><a class="hover:text-white hover:underline" href="/about">About</a></li>
+              <li><a class="hover:text-white hover:underline" href="/contact">Contact</a></li>
+              <li><a class="hover:text-white hover:underline" href="/terms">Terms</a> · <a class="hover:text-white hover:underline" href="/privacy">Privacy</a></li>
+              <li><a class="hover:text-white hover:underline" href="/refund-policy">Refunds</a> · <a class="hover:text-white hover:underline" href="/shipping-policy">Delivery</a></li>
             </ul>
           </div>
         </div>
-        <div class="border-t border-line">
-          <div class="container-x flex flex-col gap-2 py-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div class="border-t border-green-700">
+          <div class="container-x flex flex-col gap-2 py-4 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
             <p>© {year} Sarees Hub. Map data © OpenStreetMap contributors.</p>
-            <p><a class="hover:underline" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a></p>
+            <p><a class="hover:text-white hover:underline" href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a></p>
           </div>
         </div>
       </footer>
@@ -150,8 +150,8 @@ const year = new Date().getFullYear();
             const on = t.match(path);
             return (
               <a href={t.href} aria-current={on ? "page" : undefined}
-                 class:list={["flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium", on ? "text-brand-700" : "text-muted"]}>
-                <span class:list={["grid h-7 w-12 place-items-center rounded-full transition", on && "bg-brand-50"]}>
+                 class:list={["flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium", on ? "text-green-600" : "text-muted"]}>
+                <span class:list={["grid h-7 w-12 place-items-center rounded-full transition", on && "bg-green-50"]}>
                   <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width={on ? 2.2 : 1.8} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
                 </span>
                 {t.label}

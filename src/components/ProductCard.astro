@@ -14,7 +14,7 @@ const off = discountPct(p.price_inr, p.mrp_inr);
     {p.distance_km != null && <span class="badge absolute right-2 top-2 bg-white/95 text-ink">{formatKm(p.distance_km)}</span>}
   </div>
   <div class="mt-2 space-y-0.5 px-0.5">
-    <h3 class="line-clamp-2 font-sans text-sm font-medium leading-snug tracking-normal text-ink group-hover:text-brand-700">{p.title}</h3>
+    <h3 class="line-clamp-2 font-sans text-sm font-medium leading-snug tracking-normal text-ink group-hover:text-green-600">{p.title}</h3>
     <p class="text-sm">
       <span class="font-semibold text-ink" data-price>{rupees(p.price_inr)}</span>
       {p.mrp_inr && p.price_inr && p.mrp_inr > p.price_inr && <span class="ml-1 text-xs text-muted line-through">{rupees(p.mrp_inr)}</span>}

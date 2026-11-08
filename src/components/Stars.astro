@@ -7,7 +7,7 @@ const cls = size === "md" ? "h-5 w-5" : "h-3.5 w-3.5";
 <span class="inline-flex items-center gap-1" aria-label={count === undefined ? `${r} out of 5 stars` : count ? `${r.toFixed(1)} out of 5 from ${count} reviews` : "No reviews yet"}>
   <span class="inline-flex">
     {[1, 2, 3, 4, 5].map((i) => (
-      <svg viewBox="0 0 20 20" class:list={[cls, i <= Math.round(r) ? "text-zari-500" : "text-line"]} fill="currentColor" aria-hidden="true">
+      <svg viewBox="0 0 20 20" class:list={[cls, i <= Math.round(r) ? "text-gold-500" : "text-line"]} fill="currentColor" aria-hidden="true">
         <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.6 7.7l5.8-.8z" />
       </svg>
     ))}

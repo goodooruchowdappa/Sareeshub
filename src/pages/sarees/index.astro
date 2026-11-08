@@ -102,7 +102,7 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
         {kind && <a class="chip chip-active" href={withParams({ kind: null })}>{SHOP_KINDS.find((k) => k.value === kind)?.plural ?? kind} ✕</a>}
         {lat != null && <a class="chip chip-active" href={withParams({ lat: null, lng: null, r: null, sort: sort === "nearest" ? null : sort })}>Within {radius} km ✕</a>}
         {inStock && <a class="chip chip-active" href={withParams({ stock: null })}>In stock ✕</a>}
-        <a class="text-brand-700 underline" href="/sarees">Clear all</a>
+        <a class="text-green-700 underline" href="/sarees">Clear all</a>
       </div>
     )}
   </div>
@@ -111,14 +111,14 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
     <div class="container-x mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside>
         <details class="card group p-4" data-filters>
-          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Filters{(tags.length || min != null || max != null || kind || inStock) ? <span class="badge bg-brand-700 text-white">on</span> : null} <span class="text-muted transition group-open:rotate-180">⌄</span></summary>
+          <summary class="flex cursor-pointer list-none items-center justify-between font-semibold">Filters{(tags.length || min != null || max != null || kind || inStock) ? <span class="badge bg-green-700 text-white">on</span> : null} <span class="text-muted transition group-open:rotate-180">⌄</span></summary>
           <div class="mt-3 space-y-5 lg:mt-0">
             <div>
               <p class="label">Price</p>
               <ul class="space-y-1 text-sm">
                 {PRICE_BANDS.map((b) => {
                   const on = (b.min ?? null) === (min ?? null) && (b.max ?? null) === (max ?? null);
-                  return <li><a class:list={["block rounded-lg px-2 py-1 hover:bg-sand", on && "bg-brand-50 font-semibold text-brand-800"]} href={withParams({ min: b.min != null ? String(b.min) : null, max: b.max != null ? String(b.max) : null })}>{b.label}</a></li>;
+                  return <li><a class:list={["block rounded-lg px-2 py-1 hover:bg-sand", on && "bg-green-50 font-semibold text-green-800"]} href={withParams({ min: b.min != null ? String(b.min) : null, max: b.max != null ? String(b.max) : null })}>{b.label}</a></li>;
                 })}
               </ul>
               <form method="get" action="/sarees" class="mt-2 flex items-center gap-1">
