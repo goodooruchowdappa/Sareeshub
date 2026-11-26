@@ -31,6 +31,7 @@ export default function MapExplorer() {
   const mapRef = useRef<MLMap | null>(null);
   const popupRef = useRef<Popup | null>(null);
   const mlRef = useRef<typeof import("maplibre-gl") | null>(null);
+  const geoCtrlRef = useRef<import("maplibre-gl").GeolocateControl | null>(null);
   const reqId = useRef(0);
   const init = useMemo(() => (typeof window === "undefined" ? null : readUrl()), []);
 
@@ -155,6 +156,27 @@ export default function MapExplorer() {
       const map = new ml.Map({ container: mapEl.current, style: MAP_STYLE, center, zoom, attributionControl: { compact: true } });
       mapRef.current = map;
       map.addControl(new ml.NavigationControl({ showCompass: false }), "bottom-right");
+      // Native geolocate control — handles browser permission prompt correctly on mobile
+      const geoCtrl = new ml.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showAccuracyCircle: true,
+      });
+      geoCtrl.on("geolocate", (e) => {
+        const pos = e as unknown as GeolocationPosition;
+        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocMsg(null);
+      });
+      geoCtrl.on("error", (e) => {
+        const err = e as unknown as GeolocationPositionError;
+        setLocMsg(
+          err.code === 1 /* PERMISSION_DENIED */
+            ? "Location blocked. Allow location in your browser/phone settings and try again."
+            : "Couldn't get your location. Try again or search for your area.",
+        );
+      });
+      map.addControl(geoCtrl, "bottom-right");
+      geoCtrlRef.current = geoCtrl;
       off = attachResize(map, mapEl.current);
 
       // If the map style can't load (offline, tile service down), keep the list working.
@@ -300,22 +322,36 @@ export default function MapExplorer() {
     document.getElementById(`shop-${s.id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selected, shops]);
 
-  async function locate(map = mapRef.current, zoom = 13) {
+  function locate(map = mapRef.current, _zoom = 13) {
     if (!map) return;
-    setLocMsg("Finding your location…");
-    try {
-      const p = await currentPosition();
-      setMe({ lat: p.lat, lng: p.lng });
-      setLocMsg(null);
-      map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), zoom), essential: true, maxDuration: 2000 });
-      const ml = mlRef.current!;
-      const dot = document.createElement("div");
-      dot.className = "h-4 w-4 rounded-full border-2 border-white bg-blue-600 shadow-[0_0_0_6px_rgba(37,99,235,0.25)]";
-      (map as MLMap & { _meMarker?: import("maplibre-gl").Marker })._meMarker?.remove();
-      (map as MLMap & { _meMarker?: import("maplibre-gl").Marker })._meMarker = new ml.Marker({ element: dot }).setLngLat([p.lng, p.lat]).addTo(map);
-    } catch (e) {
-      setLocMsg(e instanceof Error ? e.message : "Couldn't get your location.");
+    // Use the native GeolocateControl — it handles permission prompts correctly on mobile.
+    const ctrl = geoCtrlRef.current;
+    if (ctrl) {
+      setLocMsg("Finding your location…");
+      try {
+        ctrl.trigger();
+      } catch {
+        // trigger() may throw if the control is in a state where it can't fire;
+        // the error event on the control will surface a user-facing message.
+      }
+      return;
     }
+    // Fallback: manual geolocation (no geoCtrl yet).
+    setLocMsg("Finding your location…");
+    currentPosition()
+      .then((p) => {
+        setMe({ lat: p.lat, lng: p.lng });
+        setLocMsg(null);
+        map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), _zoom), essential: true, maxDuration: 2000 });
+      })
+      .catch((e: unknown) => {
+        const msg = e instanceof GeolocationPositionError
+          ? e.code === e.PERMISSION_DENIED
+            ? "Location blocked. Allow location in your browser/phone settings and try again."
+            : "Couldn't get your location. Try again or search for your area."
+          : "Couldn't get your location.";
+        setLocMsg(msg);
+      });
   }
 
   function goToPlace(p: Place) {
