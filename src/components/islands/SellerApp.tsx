@@ -153,6 +153,21 @@ export default function SellerApp() {
   );
 }
 
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button className={`btn-outline shrink-0 transition-colors ${copied ? "!border-leaf !text-leaf" : ""}`} onClick={copy}>
+      {copied ? "Copied ✓" : "Copy"}
+    </button>
+  );
+}
+
 function Skeleton() {
   return <div className="space-y-4"><div className="h-10 w-1/2 animate-pulse rounded-xl bg-sand" /><div className="h-48 animate-pulse rounded-2xl bg-sand" /></div>;
 }
@@ -234,7 +249,7 @@ function Overview({ data, go }: { data: MyShop; go: (t: Tab) => void }) {
             <p className="text-xs text-muted">Put it on your WhatsApp status, Instagram bio and visiting cards.</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <input readOnly value={url} className="input flex-1" onFocus={(e) => e.target.select()} aria-label="Shop link" />
-              <button className="btn-outline" onClick={() => navigator.clipboard.writeText(url)}>Copy</button>
+              <CopyBtn text={url} />
               <a className="btn-whatsapp" target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent(`Visit ${s.name} on Sarees Hub — see our sarees, timings and directions: ${url}`)}`}>Share on WhatsApp</a>
             </div>
           </div>
@@ -276,6 +291,7 @@ const emptyProduct = (): Omit<Product, "id" | "slug" | "updated_at"> & { id?: st
 function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promise<void>; flash: (m: string) => void; go: (t: Tab) => void }) {
   const [editing, setEditing] = useState<ReturnType<typeof emptyProduct> | null>(null);
   const [q, setQ] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   // Local mirror of products list for optimistic UI updates.
   const [localProducts, setLocalProducts] = useState<Product[]>(data.products);
   // Sync local list when parent data changes (e.g. after reload).
@@ -295,9 +311,9 @@ function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promi
     }
   }
   async function del(p: Product) {
-    if (!confirm(`Delete "${p.title}"?`)) return;
     // Optimistic remove so the card disappears immediately.
     setLocalProducts((prev) => prev.filter((x) => x.id !== p.id));
+    setConfirmDelete(null);
     try {
       await rpc(supabase(), "delete_product", { p_product: p.id });
     } finally {
@@ -353,7 +369,14 @@ function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promi
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => setEditing(p)}>Edit</button>
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => quick(p, { in_stock: !p.in_stock })}>{p.in_stock ? "Mark sold out" : "Back in stock"}</button>
                   <button className="btn-ghost !px-2 !py-1 text-xs" onClick={() => quick(p, { active: !p.active })}>{p.active ? "Hide" : "Show"}</button>
-                  <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700" onClick={() => del(p)}>Delete</button>
+                  {confirmDelete === p.id ? (
+                    <span className="flex items-center gap-1 text-xs">
+                      <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700 font-semibold" onClick={() => del(p)}>Confirm delete</button>
+                      <button className="btn-ghost !px-2 !py-1 text-xs text-muted" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                    </span>
+                  ) : (
+                    <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700" onClick={() => setConfirmDelete(p.id)}>Delete</button>
+                  )}
                 </div>
               </div>
             </div>

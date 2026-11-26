@@ -4,9 +4,10 @@ import TagPicker from "./TagPicker";
 import PlaceField, { type PlaceValue } from "./PlaceField";
 import BuyerPlans from "./BuyerPlans";
 import { rpc, supabase } from "../../lib/supabase";
-import { loadMe, requireSession } from "../../lib/session";
+import { getSession, loadMe, requireSession, signInWithGoogle } from "../../lib/session";
 import { flushNotifications } from "../../lib/checkout";
 import { SAREE_COLORS } from "../../lib/config";
+import { GoogleIcon } from "./AccountMenu";
 import type { BuyerStatus, Me, TagRef } from "../../lib/types";
 
 const RADII = [
@@ -26,6 +27,7 @@ const BUDGETS = [
 ];
 
 export default function RequestForm() {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [status, setStatus] = useState<BuyerStatus | null>(null);
   const [images, setImages] = useState<string[]>([]);
@@ -39,7 +41,8 @@ export default function RequestForm() {
   const [reach, setReach] = useState<{ sellers: number; instant: number; nearest_km: number | null } | null>(null);
 
   useEffect(() => {
-    requireSession().then(async (s) => {
+    getSession().then(async (s) => {
+      setSignedIn(!!s);
       if (!s) return;
       const [m, st] = await Promise.all([loadMe(), rpc<BuyerStatus>(supabase(), "my_buyer_status")]);
       setMe(m);
@@ -84,7 +87,20 @@ export default function RequestForm() {
     }
   }
 
-  if (!me || !status) return <div className="h-64 animate-pulse rounded-2xl bg-sand" />;
+  if (signedIn === null) return <div className="h-64 animate-pulse rounded-2xl bg-sand" />;
+
+  if (!signedIn)
+    return (
+      <div className="rounded-2xl border border-dashed border-line bg-sand/60 p-6 text-center">
+        <p className="font-display text-xl">Sign in to send a request</p>
+        <p className="mt-1 text-sm text-muted">Shops and weavers near you will reply with photos and prices. Your phone number stays private.</p>
+        <button type="button" className="btn-outline mx-auto mt-4" onClick={() => signInWithGoogle(window.location.pathname)}>
+          <GoogleIcon /> Continue with Google
+        </button>
+      </div>
+    );
+
+  if (!me || !status) return <div className="h-32 animate-pulse rounded-2xl bg-sand" />;
 
   const outOfQuota = status.quota != null && (status.remaining ?? 0) <= 0;
   if (outOfQuota)

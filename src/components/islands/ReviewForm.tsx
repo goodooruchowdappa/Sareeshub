@@ -15,6 +15,7 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirmDel, setConfirmDel] = useState(false);
 
   useEffect(() => {
     getSession().then(async (s) => {
@@ -49,8 +50,8 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
   }
 
   async function remove() {
-    if (!confirm("Delete your review?")) return;
     setBusy(true);
+    setConfirmDel(false);
     try {
       await rpc(supabase(), "delete_my_review", { p_shop: shopId });
       setMine(null);
@@ -66,9 +67,16 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
 
   if (!signedIn)
     return (
-      <div className="rounded-2xl border border-dashed border-line bg-white p-4">
+      <div className="rounded-2xl border border-dashed border-line bg-sand/60 p-5">
+        <div className="flex gap-1 mb-2" aria-hidden="true">
+          {[1,2,3,4,5].map((n) => (
+            <svg key={n} viewBox="0 0 20 20" className="h-7 w-7 text-line" fill="currentColor">
+              <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.6 7.7l5.8-.8z" />
+            </svg>
+          ))}
+        </div>
         <p className="text-sm font-semibold">Visited {shopName}?</p>
-        <p className="text-sm text-muted">Sign in with Google to rate and review. It takes 10 seconds.</p>
+        <p className="mt-0.5 text-sm text-muted">Share your experience — it helps other buyers. Sign in with Google to leave a review (10 seconds).</p>
         <button type="button" className="btn-outline mt-3" onClick={() => signInWithGoogle(window.location.pathname + "#reviews")}>
           <GoogleIcon /> Continue with Google
         </button>
@@ -92,15 +100,25 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
               <p>Share your experience with other buyers.</p>
             )}
           </div>
-          <div className="flex gap-2">
-            {mine && (
-              <button type="button" className="btn-ghost text-sm" onClick={remove} disabled={busy}>
+          <div className="flex gap-2 items-center flex-wrap">
+            {mine && !confirmDel && (
+              <button type="button" className="btn-ghost text-sm" onClick={() => setConfirmDel(true)} disabled={busy}>
                 Delete
               </button>
             )}
-            <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
-              {mine ? "Edit review" : "Write a review"}
-            </button>
+            {mine && confirmDel && (
+              <span className="flex items-center gap-1 text-xs">
+                <button type="button" className="btn-ghost !px-2 !py-1 text-xs text-brand-700 font-semibold" onClick={remove} disabled={busy}>
+                  {busy ? "Deleting…" : "Yes, delete"}
+                </button>
+                <button type="button" className="btn-ghost !px-2 !py-1 text-xs text-muted" onClick={() => setConfirmDel(false)}>Cancel</button>
+              </span>
+            )}
+            {!confirmDel && (
+              <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+                {mine ? "Edit review" : "Write a review"}
+              </button>
+            )}
           </div>
         </div>
       ) : (

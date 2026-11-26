@@ -22,7 +22,7 @@ export default defineConfig({
       PUBLIC_SUPABASE_URL: envField.string({ context: "client", access: "public" }),
       PUBLIC_SUPABASE_ANON_KEY: envField.string({ context: "client", access: "public" }),
       PUBLIC_SITE_URL: envField.string({ context: "client", access: "public", default: "http://localhost:4321" }),
-      PUBLIC_CONTACT_EMAIL: envField.string({ context: "client", access: "public", default: "support@example.com" }),
+      PUBLIC_CONTACT_EMAIL: envField.string({ context: "client", access: "public", default: "support@sareeshub.in" }),
       PUBLIC_CONTACT_PHONE: envField.string({ context: "client", access: "public", default: "" }),
       PUBLIC_BUSINESS_NAME: envField.string({ context: "client", access: "public", default: "Sarees Hub" }),
       PUBLIC_BUSINESS_ADDRESS: envField.string({ context: "client", access: "public", default: "India" }),

@@ -113,6 +113,8 @@ function Detail({ id, sent, back }: { id: string; sent: boolean; back: () => voi
   const [d, setD] = useState<RequestDetail | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [zoom, setZoom] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
   const load = useCallback(() => rpc<RequestDetail>(supabase(), "get_request", { p_id: id }).then(setD).catch((e) => setErr(e.message)), [id]);
   useEffect(() => {
     load();
@@ -127,10 +129,10 @@ function Detail({ id, sent, back }: { id: string; sent: boolean; back: () => voi
     if (s === "shortlisted") flushNotifications();
     load();
   }
-  async function close() {
-    const reason = prompt("Close this request? Sellers will stop replying.\nOptional: tell us why (e.g. found my saree).", "");
-    if (reason === null) return;
-    await rpc(supabase(), "close_request", { p_id: id, p_reason: reason });
+  async function confirmClose() {
+    await rpc(supabase(), "close_request", { p_id: id, p_reason: closeReason });
+    setClosing(false);
+    setCloseReason("");
     load();
   }
 
@@ -159,7 +161,20 @@ function Detail({ id, sent, back }: { id: string; sent: boolean; back: () => voi
           </dl>
           {r.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{r.tags.map((t) => <span key={t.id} className="chip">{t.name}</span>)}</div>}
           {r.description && <p className="mt-3 whitespace-pre-line text-sm">{r.description}</p>}
-          {r.status === "open" && <button className="btn-ghost mt-3 -ml-2 text-sm" onClick={close}>Close request</button>}
+          {r.status === "open" && !closing && (
+            <button className="btn-ghost mt-3 -ml-2 text-sm" onClick={() => setClosing(true)}>Close request</button>
+          )}
+          {r.status === "open" && closing && (
+            <div className="mt-3 rounded-xl border border-line bg-sand/60 p-3 space-y-2">
+              <p className="text-sm font-semibold">Close this request?</p>
+              <p className="text-xs text-muted">Sellers will stop replying. Let them know if you found your saree.</p>
+              <input className="input text-sm" placeholder="Why are you closing? (optional)" value={closeReason} onChange={(e) => setCloseReason(e.target.value)} />
+              <div className="flex gap-2">
+                <button className="btn-primary !py-1.5 text-sm" onClick={confirmClose}>Yes, close</button>
+                <button className="btn-ghost !py-1.5 text-sm" onClick={() => { setClosing(false); setCloseReason(""); }}>Cancel</button>
+              </div>
+            </div>
+          )}
         </div>
         {r.images.length > 0 && (
           <div className="grid grid-cols-4 gap-2 md:grid-cols-2">

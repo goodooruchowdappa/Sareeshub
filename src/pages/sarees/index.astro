@@ -93,6 +93,7 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
         <option value="nearest" selected={sort === "nearest"}>Nearest to me</option>
       </select>
       <button type="button" class="btn-outline flex-1 sm:flex-none" data-near>{lat != null ? "Change location" : "📍 Near me"}</button>
+      <p id="geo-err" class="hidden w-full text-xs text-brand-700 mt-1" role="alert"></p>
     </form>
 
     {(tags.length > 0 || min != null || max != null || kind || lat != null || inStock) && (
@@ -180,9 +181,15 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
   // Filters start open on desktop, folded on phones/tablets so results come first.
   const filters = document.querySelector<HTMLDetailsElement>("[data-filters]");
   if (filters && matchMedia("(min-width: 1024px)").matches) filters.open = true;
-  document.querySelector<HTMLButtonElement>("[data-near]")?.addEventListener("click", (e) => {
+  const nearBtn = document.querySelector<HTMLButtonElement>("[data-near]");
+  const geoErr = document.getElementById("geo-err");
+  function showGeoErr(msg: string) {
+    if (geoErr) { geoErr.textContent = msg; geoErr.classList.remove("hidden"); }
+  }
+  nearBtn?.addEventListener("click", (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
-    if (!navigator.geolocation) return alert("Location is not available on this device.");
+    if (geoErr) geoErr.classList.add("hidden");
+    if (!navigator.geolocation) return showGeoErr("Location is not available on this device. Try searching by city name.");
     btn.textContent = "Finding you…";
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -196,7 +203,7 @@ const filtered = !!(q || tags.length || min || max || kind || lat != null || inS
       },
       () => {
         btn.textContent = "📍 Near me";
-        alert("Please allow location access, or search by city name instead.");
+        showGeoErr("Location access was denied. Allow location in your browser settings, or search by city name.");
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
     );
