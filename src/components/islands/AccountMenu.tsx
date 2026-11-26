@@ -19,7 +19,7 @@ export default function AccountMenu() {
 
   if (!me)
     return (
-      <button type="button" className="btn-outline !px-3 !py-2" onClick={() => signInWithGoogle()}>
+      <button type="button" className="btn-outline !px-3 !py-2" onClick={() => signInWithGoogle(window.location.pathname + window.location.search)}>
         <GoogleIcon /> <span>Sign in</span>
       </button>
     );
