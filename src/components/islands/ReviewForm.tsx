@@ -15,6 +15,7 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirmDel, setConfirmDel] = useState(false);
 
   useEffect(() => {
     getSession().then(async (s) => {
@@ -49,8 +50,8 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
   }
 
   async function remove() {
-    if (!confirm("Delete your review?")) return;
     setBusy(true);
+    setConfirmDel(false);
     try {
       await rpc(supabase(), "delete_my_review", { p_shop: shopId });
       setMine(null);
@@ -99,15 +100,25 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
               <p>Share your experience with other buyers.</p>
             )}
           </div>
-          <div className="flex gap-2">
-            {mine && (
-              <button type="button" className="btn-ghost text-sm" onClick={remove} disabled={busy}>
+          <div className="flex gap-2 items-center flex-wrap">
+            {mine && !confirmDel && (
+              <button type="button" className="btn-ghost text-sm" onClick={() => setConfirmDel(true)} disabled={busy}>
                 Delete
               </button>
             )}
-            <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
-              {mine ? "Edit review" : "Write a review"}
-            </button>
+            {mine && confirmDel && (
+              <span className="flex items-center gap-1 text-xs">
+                <button type="button" className="btn-ghost !px-2 !py-1 text-xs text-brand-700 font-semibold" onClick={remove} disabled={busy}>
+                  {busy ? "Deleting…" : "Yes, delete"}
+                </button>
+                <button type="button" className="btn-ghost !px-2 !py-1 text-xs text-muted" onClick={() => setConfirmDel(false)}>Cancel</button>
+              </span>
+            )}
+            {!confirmDel && (
+              <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+                {mine ? "Edit review" : "Write a review"}
+              </button>
+            )}
           </div>
         </div>
       ) : (
