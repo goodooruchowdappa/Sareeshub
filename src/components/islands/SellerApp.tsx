@@ -153,6 +153,21 @@ export default function SellerApp() {
   );
 }
 
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button className={`btn-outline shrink-0 transition-colors ${copied ? "!border-leaf !text-leaf" : ""}`} onClick={copy}>
+      {copied ? "Copied ✓" : "Copy"}
+    </button>
+  );
+}
+
 function Skeleton() {
   return <div className="space-y-4"><div className="h-10 w-1/2 animate-pulse rounded-xl bg-sand" /><div className="h-48 animate-pulse rounded-2xl bg-sand" /></div>;
 }
@@ -234,7 +249,7 @@ function Overview({ data, go }: { data: MyShop; go: (t: Tab) => void }) {
             <p className="text-xs text-muted">Put it on your WhatsApp status, Instagram bio and visiting cards.</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <input readOnly value={url} className="input flex-1" onFocus={(e) => e.target.select()} aria-label="Shop link" />
-              <button className="btn-outline" onClick={() => navigator.clipboard.writeText(url)}>Copy</button>
+              <CopyBtn text={url} />
               <a className="btn-whatsapp" target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent(`Visit ${s.name} on Sarees Hub — see our sarees, timings and directions: ${url}`)}`}>Share on WhatsApp</a>
             </div>
           </div>

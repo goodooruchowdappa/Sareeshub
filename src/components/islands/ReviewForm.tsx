@@ -66,9 +66,16 @@ export default function ReviewForm({ shopId, shopName }: { shopId: string; shopN
 
   if (!signedIn)
     return (
-      <div className="rounded-2xl border border-dashed border-line bg-white p-4">
+      <div className="rounded-2xl border border-dashed border-line bg-sand/60 p-5">
+        <div className="flex gap-1 mb-2" aria-hidden="true">
+          {[1,2,3,4,5].map((n) => (
+            <svg key={n} viewBox="0 0 20 20" className="h-7 w-7 text-line" fill="currentColor">
+              <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.6 7.7l5.8-.8z" />
+            </svg>
+          ))}
+        </div>
         <p className="text-sm font-semibold">Visited {shopName}?</p>
-        <p className="text-sm text-muted">Sign in with Google to rate and review. It takes 10 seconds.</p>
+        <p className="mt-0.5 text-sm text-muted">Share your experience — it helps other buyers. Sign in with Google to leave a review (10 seconds).</p>
         <button type="button" className="btn-outline mt-3" onClick={() => signInWithGoogle(window.location.pathname + "#reviews")}>
           <GoogleIcon /> Continue with Google
         </button>
