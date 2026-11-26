@@ -29,7 +29,7 @@ export default defineConfig({
       PUBLIC_MAP_STYLE: envField.string({
         context: "client",
         access: "public",
-        default: "https://tiles.openfreemap.org/styles/liberty",
+        default: "https://api.maptiler.com/maps/streets-v2/style.json?key=rPEHrhr5l2lkaDq3jpvH",
       }),
       PUBLIC_GEOCODER_URL: envField.string({ context: "client", access: "public", default: "https://photon.komoot.io" }),
       SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret", optional: true }),
