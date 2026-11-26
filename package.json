@@ -16,6 +16,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.6",
     "@astrojs/react": "^7.1.4",
+    "@astrojs/vercel": "^11.0.22",
     "@supabase/supabase-js": "^2.119.0",
     "@tailwindcss/vite": "^4.3.5",
     "astro": "^7.4.7",
