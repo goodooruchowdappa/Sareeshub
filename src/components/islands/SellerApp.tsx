@@ -170,7 +170,7 @@ function StatusBanner({ data, isNew, onEdit, onCancelChanges }: { data: MyShop; 
       {s.status === "rejected" && (
         <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm">
           <p className="font-semibold text-brand-800">Needs changes before it can go live</p>
-          {s.review_note && <p className="mt-1">“{s.review_note}”</p>}
+          {s.review_note && <p className="mt-1">"{s.review_note}"</p>}
           <button className="btn-primary mt-3" onClick={onEdit}>Fix & resubmit</button>
         </div>
       )}
@@ -276,17 +276,33 @@ const emptyProduct = (): Omit<Product, "id" | "slug" | "updated_at"> & { id?: st
 function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promise<void>; flash: (m: string) => void; go: (t: Tab) => void }) {
   const [editing, setEditing] = useState<ReturnType<typeof emptyProduct> | null>(null);
   const [q, setQ] = useState("");
+  // Local mirror of products list for optimistic UI updates.
+  const [localProducts, setLocalProducts] = useState<Product[]>(data.products);
+  // Sync local list when parent data changes (e.g. after reload).
+  if (localProducts !== data.products && !editing) {
+    setLocalProducts(data.products);
+  }
   const full = data.usage.products >= data.usage.max_products;
-  const list = data.products.filter((p) => !q || p.title.toLowerCase().includes(q.toLowerCase()));
+  const list = localProducts.filter((p) => !q || p.title.toLowerCase().includes(q.toLowerCase()));
 
   async function quick(p: Product, patch: Partial<Product>) {
-    await rpc(supabase(), "save_product", { p_shop: data.shop.id, p: { ...p, ...patch, tag_ids: p.tags.map((t) => t.id) } });
-    await reload();
+    // Optimistic update so the button flips immediately.
+    setLocalProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...patch } : x)));
+    try {
+      await rpc(supabase(), "save_product", { p_shop: data.shop.id, p: { ...p, ...patch, tag_ids: p.tags.map((t) => t.id) } });
+    } finally {
+      await reload();
+    }
   }
   async function del(p: Product) {
-    if (!confirm(`Delete “${p.title}”?`)) return;
-    await rpc(supabase(), "delete_product", { p_product: p.id });
-    await reload();
+    if (!confirm(`Delete "${p.title}"?`)) return;
+    // Optimistic remove so the card disappears immediately.
+    setLocalProducts((prev) => prev.filter((x) => x.id !== p.id));
+    try {
+      await rpc(supabase(), "delete_product", { p_product: p.id });
+    } finally {
+      await reload();
+    }
     flash("Deleted.");
   }
 
@@ -385,7 +401,7 @@ function ProductEditor({ shopId, initial, onCancel, onSaved }: { shopId: string;
       <div className="grid gap-4 sm:grid-cols-4">
         <div>
           <label className="label" htmlFor="p-price">Price (₹)</label>
-          <input id="p-price" className="input" inputMode="numeric" value={p.price_inr ?? ""} onChange={(e) => set("price_inr", e.target.value ? Number(e.target.value.replace(/\D/g, "")) : null)} placeholder="Leave empty for “price on request”" />
+          <input id="p-price" className="input" inputMode="numeric" value={p.price_inr ?? ""} onChange={(e) => set("price_inr", e.target.value ? Number(e.target.value.replace(/\D/g, "")) : null)} placeholder="Leave empty for price on request" />
         </div>
         <div>
           <label className="label" htmlFor="p-mrp">MRP (₹, optional)</label>

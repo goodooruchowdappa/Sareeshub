@@ -12,9 +12,13 @@ export async function hmacHex(secret: string, message: string): Promise<string> 
 }
 
 export function safeEqual(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  // Always iterate over the full length of both strings to avoid timing
+  // side-channels; XOR-accumulate differences without short-circuiting.
+  const len = Math.max(a.length, b.length);
+  let diff = a.length ^ b.length; // length mismatch contributes to diff
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  }
   return diff === 0;
 }
 

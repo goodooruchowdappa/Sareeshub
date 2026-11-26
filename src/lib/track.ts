@@ -44,8 +44,10 @@ export async function shareLink(url: string, title: string, btn?: HTMLElement) {
     try {
       await navigator.share({ url, title });
       return;
-    } catch {
-      /* user cancelled */
+    } catch (e) {
+      // AbortError = user cancelled; anything else = Share API failed,
+      // fall through to clipboard copy.
+      if (e instanceof DOMException && e.name === "AbortError") return;
     }
   }
   await navigator.clipboard?.writeText(url).catch(() => {});

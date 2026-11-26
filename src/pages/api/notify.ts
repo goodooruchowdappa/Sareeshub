@@ -25,7 +25,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   const site = PUBLIC_SITE_URL.replace(/\/$/, "");
   const batch = mails.map((m) => {
-    const url = `${site}${m.link ?? "/account/requests"}`;
+    // Sanitize m.link: must start with "/" and contain no protocol to
+    // prevent open-redirect or href-injection from a compromised DB row.
+    const rawLink = m.link ?? "/account/requests";
+    const safeLink = rawLink.startsWith("/") && !rawLink.includes("://") ? rawLink : "/account/requests";
+    const url = `${site}${safeLink}`;
     return {
       from: EMAIL_FROM,
       to: [m.email],

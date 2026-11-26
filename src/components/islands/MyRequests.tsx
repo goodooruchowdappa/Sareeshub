@@ -71,7 +71,7 @@ export default function MyRequests() {
           <a className="btn-primary" href="/requests/new">+ New request</a>
         </div>
       </div>
-      {showPlans && <BuyerPlans me={me} status={status} onPaid={setStatus} />}
+      {showPlans && <BuyerPlans me={me} status={status} onPaid={(st) => setStatus(st)} />}
 
       {list.length === 0 ? (
         <div className="card p-8 text-center">
