@@ -80,15 +80,23 @@ const year = new Date().getFullYear();
         </form>
         <div class="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-2">
           <AccountMenu client:idle />
-          <details class="relative md:hidden">
+          <details class="relative md:hidden" id="nav-menu">
             <summary class="btn !p-2 list-none cursor-pointer text-cream hover:bg-white/10" aria-label="Menu">
               <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
             </summary>
             <div class="card absolute right-0 z-[60] mt-2 w-56 p-1 text-ink">
-              {nav.map((n) => <a href={n.href} class="block rounded-lg px-3 py-2 text-sm hover:bg-sand">{n.label}</a>)}
-              <a href="/seller/register" class="block rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-sand">Register your shop</a>
+              {nav.map((n) => <a href={n.href} class="nav-menu-link block rounded-lg px-3 py-2 text-sm hover:bg-sand">{n.label}</a>)}
+              <a href="/seller/register" class="nav-menu-link block rounded-lg px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-sand">Register your shop</a>
             </div>
           </details>
+          <script>
+            document.querySelectorAll(".nav-menu-link").forEach((el) => {
+              el.addEventListener("click", () => {
+                const d = document.getElementById("nav-menu") as HTMLDetailsElement | null;
+                if (d) d.open = false;
+              });
+            });
+          </script>
         </div>
       </div>
     </header>

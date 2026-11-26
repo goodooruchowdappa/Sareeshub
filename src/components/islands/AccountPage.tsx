@@ -53,6 +53,7 @@ export default function AccountPage() {
           <button className="btn-primary">{saved ? "Saved ✓" : "Save"}</button>
         </form>
         <div className="card space-y-2 p-5 text-sm">
+          <a className="btn-outline w-full" href="/account/requests">My custom requests</a>
           {me.shops.length > 0 ? <a className="btn-outline w-full" href="/seller">Seller dashboard</a> : <a className="btn-outline w-full" href="/seller/register">Register your shop</a>}
           {me.is_admin && <a className="btn-outline w-full" href="/admin">Admin portal</a>}
           <button className="btn-ghost w-full" onClick={signOut}>Sign out</button>
