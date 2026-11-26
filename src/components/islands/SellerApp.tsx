@@ -291,6 +291,7 @@ const emptyProduct = (): Omit<Product, "id" | "slug" | "updated_at"> & { id?: st
 function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promise<void>; flash: (m: string) => void; go: (t: Tab) => void }) {
   const [editing, setEditing] = useState<ReturnType<typeof emptyProduct> | null>(null);
   const [q, setQ] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   // Local mirror of products list for optimistic UI updates.
   const [localProducts, setLocalProducts] = useState<Product[]>(data.products);
   // Sync local list when parent data changes (e.g. after reload).
@@ -310,9 +311,9 @@ function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promi
     }
   }
   async function del(p: Product) {
-    if (!confirm(`Delete "${p.title}"?`)) return;
     // Optimistic remove so the card disappears immediately.
     setLocalProducts((prev) => prev.filter((x) => x.id !== p.id));
+    setConfirmDelete(null);
     try {
       await rpc(supabase(), "delete_product", { p_product: p.id });
     } finally {
@@ -368,7 +369,14 @@ function Sarees({ data, reload, flash, go }: { data: MyShop; reload: () => Promi
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => setEditing(p)}>Edit</button>
                   <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => quick(p, { in_stock: !p.in_stock })}>{p.in_stock ? "Mark sold out" : "Back in stock"}</button>
                   <button className="btn-ghost !px-2 !py-1 text-xs" onClick={() => quick(p, { active: !p.active })}>{p.active ? "Hide" : "Show"}</button>
-                  <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700" onClick={() => del(p)}>Delete</button>
+                  {confirmDelete === p.id ? (
+                    <span className="flex items-center gap-1 text-xs">
+                      <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700 font-semibold" onClick={() => del(p)}>Confirm delete</button>
+                      <button className="btn-ghost !px-2 !py-1 text-xs text-muted" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                    </span>
+                  ) : (
+                    <button className="btn-ghost !px-2 !py-1 text-xs text-brand-700" onClick={() => setConfirmDelete(p.id)}>Delete</button>
+                  )}
                 </div>
               </div>
             </div>
